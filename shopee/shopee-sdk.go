@@ -9,15 +9,22 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/google/go-querystring/query"
+)
+
+const (
+	UserAgent = "go-marketplace-sdk/1.0.0"
 )
 
 type AppConfig struct {
@@ -469,4 +476,72 @@ func (c *ShopeeClient) Put(path string, data, resource interface{}) error {
 // Delete performs a DELETE request for the given path
 func (c *ShopeeClient) Delete(path string) error {
 	return c.CreateAndDo("DELETE", path, nil, nil, nil, nil)
+}
+
+// Upload performs a Upload request for the given path and saves the result in the
+// given resource.
+func (c *ShopeeClient) Upload(relPath, fieldname, filename string, resource interface{}) error {
+	req, err := c.NewfileUploadRequest(relPath, fieldname, filename)
+	if err != nil {
+		return err
+	}
+
+	if _, err := c.doGetHeaders(req, resource, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Creates a new file upload http request with optional extra params
+func (c *ShopeeClient) NewfileUploadRequest(relPath, paramName, filename string) (*http.Request, error) {
+	if strings.HasPrefix(relPath, "/") {
+		// make sure it's a relative path
+		relPath = strings.TrimLeft(relPath, "/")
+	}
+
+	relPath = path.Join("api/v2", relPath)
+
+	rel, err := url.Parse(relPath)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make the full url based on the relative path
+	u := c.baseURL.ResolveReference(rel)
+	uri := u.String()
+
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile(paramName, filepath.Base(filename))
+	if err != nil {
+		return nil, err
+	}
+	if _, err = io.Copy(part, file); err != nil {
+		return nil, err
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", uri, body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("User-Agent", UserAgent)
+
+	c.makeSignature(req)
+
+	return req, nil
 }

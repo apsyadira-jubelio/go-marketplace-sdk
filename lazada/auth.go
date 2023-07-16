@@ -103,3 +103,25 @@ func (a *AuthService) GetAccessToken(ctx context.Context, code string) (*Token, 
 
 	return t, nil
 }
+
+func (a *AuthService) RefreshToken(ctx context.Context, refreshToken string) (*Token, error) {
+	req, err := a.client.NewRequest("GET",
+		fmt.Sprintf("%s?code=%s", ApiNames["RefreshToken"], refreshToken), nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	_, err = a.client.Do(ctx, req, &buf)
+	if err != nil {
+		return nil, err
+	}
+
+	t := &Token{retrievedAt: time.Now()}
+	if err := json.NewDecoder(&buf).Decode(t); err != nil {
+		return nil, errors.Wrap(err, "cant unmarshal token")
+	}
+
+	return t, nil
+}

@@ -5,18 +5,18 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/apsyadira-jubelio/go-marketplace-sdk/lazada"
+	"github.com/go-resty/resty/v2"
 	"github.com/jarcoal/httpmock"
 )
 
 var (
-	client *lazada.Client
+	client *resty.Client
 )
 
 func setup() {
-	client = lazada.NewClient("2910038", "111189237912738971283187318", lazada.Indonesia)
+	client = resty.New()
 
-	httpmock.ActivateNonDefault(client.Client)
+	httpmock.ActivateNonDefault(client.GetClient())
 }
 
 func teardown() {
@@ -24,7 +24,7 @@ func teardown() {
 }
 
 func loadFixture(filename string) []byte {
-	f, err := ioutil.ReadFile("../../mockdata/lazada/" + filename)
+	f, err := ioutil.ReadFile("../../mockdata/tokopedia/" + filename)
 	if err != nil {
 		panic(fmt.Sprintf("Cannot load fixture %v", filename))
 	}
@@ -33,7 +33,7 @@ func loadFixture(filename string) []byte {
 }
 
 func loadMockData(filename string, out interface{}) {
-	f, err := ioutil.ReadFile("../../mockdata/lazada/" + filename)
+	f, err := ioutil.ReadFile("../../mockdata/tokopedia/" + filename)
 	if err != nil {
 		panic(fmt.Sprintf("Cannot load fixture %v", filename))
 	}

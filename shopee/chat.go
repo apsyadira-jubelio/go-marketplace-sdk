@@ -4,6 +4,7 @@ type ChatService interface {
 	GetMessage(shopID uint64, token string, params GetMessageParamsRequest) (*GetMessageResponse, error)
 	GetConversationList(shopID uint64, token string, params GetConversationParamsRequest) (*GetConversationResponse, error)
 	SendMessage(shopID uint64, token string, request SendMessageRequest) (*GetSendMessageResponse, error)
+	UploadImage(shopID uint64, token string, filename string) (*UploadImageResponse, error)
 }
 
 type GetMessageParamsRequest struct {
@@ -182,5 +183,28 @@ func (s *ChatServiceOp) SendMessage(shopID uint64, token string, request SendMes
 	}
 
 	err = s.client.WithShop(uint64(shopID), token).Post(path, req, resp)
+	return resp, err
+}
+
+type UploadImageResponse struct {
+	BaseResponse
+
+	Response UploadImageDataResponse `json:"response"`
+}
+
+type UploadImageDataResponse struct {
+	FileServerID int    `json:"file_server_id"`
+	ThumbHeight  int    `json:"thumb_height"`
+	ThumbWidth   int    `json:"thumb_width"`
+	Thumbnail    string `json:"thumbnail"`
+	URL          string `json:"url"`
+	URLHash      string `json:"url_hash"`
+}
+
+func (s *ChatServiceOp) UploadImage(shopID uint64, token string, filename string) (*UploadImageResponse, error) {
+	path := "/sellerchat/upload_image"
+
+	resp := new(UploadImageResponse)
+	err := s.client.Upload(path, "file", filename, resp)
 	return resp, err
 }

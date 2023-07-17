@@ -106,7 +106,7 @@ func (a *AuthService) GetAccessToken(ctx context.Context, code string) (*Token, 
 
 func (a *AuthService) RefreshToken(ctx context.Context, refreshToken string) (*Token, error) {
 	req, err := a.client.NewRequest("GET",
-		fmt.Sprintf("%s?code=%s", ApiNames["RefreshToken"], refreshToken), nil)
+		fmt.Sprintf("%s?refresh_token=%s", ApiNames["RefreshToken"], refreshToken), nil)
 
 	if err != nil {
 		return nil, err

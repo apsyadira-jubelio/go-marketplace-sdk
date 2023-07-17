@@ -205,6 +205,6 @@ func (s *ChatServiceOp) UploadImage(shopID uint64, token string, filename string
 	path := "/sellerchat/upload_image"
 
 	resp := new(UploadImageResponse)
-	err := s.client.Upload(path, "file", filename, resp)
+	err := s.client.WithShop(uint64(shopID), token).Upload(path, "file", filename, resp)
 	return resp, err
 }

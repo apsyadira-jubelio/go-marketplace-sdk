@@ -36,6 +36,12 @@ type Token struct {
 		SellerID  string `json:"seller_id"`
 		ShortCode string `json:"short_code"`
 	} `json:"country_user_info"`
+	CountryUserInfoList []struct {
+		Country   string `json:"country"`
+		UserID    string `json:"user_id"`
+		SellerID  string `json:"seller_id"`
+		ShortCode string `json:"short_code"`
+	} `json:"country_user_info_list"`
 	ExpiresIn   int    `json:"expires_in"`
 	RequestID   string `json:"request_id"`
 	Account     string `json:"account"`

@@ -485,9 +485,12 @@ func (c *ShopeeClient) Upload(relPath, fieldname, filename string, resource inte
 		return err
 	}
 
+	fmt.Println(req)
+
 	if _, err := c.doGetHeaders(req, resource, true); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -510,7 +513,7 @@ func (c *ShopeeClient) NewfileUploadRequest(relPath, paramName, filename string)
 	uri := u.String()
 
 	// Replace os.Open with http.Get to fetch data from the URL
-	resp, err := http.Get(uri)
+	resp, err := http.Get(filename)
 	if err != nil {
 		return nil, err
 	}

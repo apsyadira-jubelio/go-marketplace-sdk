@@ -12,7 +12,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"os"
 	"path"
 	"path/filepath"
 	"sort"
@@ -510,20 +509,22 @@ func (c *ShopeeClient) NewfileUploadRequest(relPath, paramName, filename string)
 	u := c.baseURL.ResolveReference(rel)
 	uri := u.String()
 
-	file, err := os.Open(filename)
+	// Replace os.Open with http.Get to fetch data from the URL
+	resp, err := http.Get(uri)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer resp.Body.Close()
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	part, err := writer.CreateFormFile(paramName, filepath.Base(filename))
+	part, err := writer.CreateFormFile(paramName, filepath.Base(uri))
 	if err != nil {
 		return nil, err
 	}
-	if _, err = io.Copy(part, file); err != nil {
+
+	if _, err = io.Copy(part, resp.Body); err != nil {
 		return nil, err
 	}
 

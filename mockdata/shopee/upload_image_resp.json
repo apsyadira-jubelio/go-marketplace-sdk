@@ -1,0 +1,13 @@
+{
+  "error": "",
+  "message": "",
+  "request_id": "9ebdca61cadb02bc00b293ec45048a20",
+  "response": {
+    "file_server_id": 1929223982908429,
+    "thumb_height": 220,
+    "thumb_width": 330,
+    "thumbnail": "https://cf.shopee.com.my/file/633bfa78283de791d5d6766d0226421c_tn_dynamic",
+    "url": "https://cf.shopee.com.my/file/633bfa78283de791d5d6766d0226421c",
+    "url_hash": "633bfa78283de791d5d6766d0226421c"
+  }
+}

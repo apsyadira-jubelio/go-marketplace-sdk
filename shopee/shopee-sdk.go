@@ -485,8 +485,6 @@ func (c *ShopeeClient) Upload(relPath, fieldname, filename string, resource inte
 		return err
 	}
 
-	fmt.Println(req)
-
 	if _, err := c.doGetHeaders(req, resource, true); err != nil {
 		return err
 	}

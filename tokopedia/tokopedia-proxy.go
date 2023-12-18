@@ -2,6 +2,7 @@ package tokopedia
 
 import (
 	"log"
+	"net/http"
 	"net/url"
 	"path"
 	"strings"
@@ -47,7 +48,8 @@ type ProxyAppConfig struct {
 	RetryCount  int
 }
 
-func NewHTTPProxy(app ProxyAppConfig) *ProxyClient {
+// New method creates a new NewProxyClient client.
+func NewProxyClient(app ProxyAppConfig) *ProxyClient {
 	client := resty.New().
 		SetBaseURL(app.ProxyURL).
 		OnBeforeRequest(
@@ -72,8 +74,18 @@ func NewHTTPProxy(app ProxyAppConfig) *ProxyClient {
 		client.SetRetryCount(app.RetryCount).
 			SetRetryWaitTime(5 * time.Second).
 			SetRetryMaxWaitTime(1 * time.Minute).
-			AddRetryAfterErrorCondition()
-
+			AddRetryCondition(
+				func(r *resty.Response, err error) bool {
+					if err != nil {
+						log.Println("retry on Error:", err.Error())
+						return true
+					}
+					if (r.StatusCode() == http.StatusBadGateway) || (r.StatusCode() == http.StatusGatewayTimeout) {
+						log.Println("retry on Http Error:", r.StatusCode())
+						return true
+					}
+					return false
+				})
 	}
 
 	return &ProxyClient{

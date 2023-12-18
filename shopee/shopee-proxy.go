@@ -55,14 +55,17 @@ type ProxyAppConfig struct {
 	RetryCount  int
 }
 
+// New method creates a new HTTPProxy client.
 func NewProxyClient(app ProxyAppConfig) *ProxyClient {
 	baseURL, err := url.Parse(app.ProxyURL)
 	if err != nil {
 		panic(err)
 	}
 
+	// Create resty client
 	client := resty.New().
 		SetBaseURL(app.ProxyURL).
+		SetTimeout(15 * time.Second).
 		OnBeforeRequest(
 			func(c *resty.Client, r *resty.Request) error {
 				if app.EnableLog {
@@ -81,11 +84,23 @@ func NewProxyClient(app ProxyAppConfig) *ProxyClient {
 				return nil
 			})
 
+	// Enable retry if enabled in config
 	if app.EnableRetry {
 		client.SetRetryCount(app.RetryCount).
 			SetRetryWaitTime(5 * time.Second).
 			SetRetryMaxWaitTime(1 * time.Minute).
-			AddRetryAfterErrorCondition()
+			AddRetryCondition(
+				func(r *resty.Response, err error) bool {
+					if err != nil {
+						log.Println("retry on Error:", err.Error())
+						return true
+					}
+					if (r.StatusCode() == http.StatusBadGateway) || (r.StatusCode() == http.StatusGatewayTimeout) {
+						log.Println("retry on Http Error:", r.StatusCode())
+						return true
+					}
+					return false
+				})
 
 	}
 
@@ -169,13 +184,12 @@ func (h *ProxyClient) CreateParams(relPath string, method string, data interface
 
 	options := RequestOptions{
 		Method:  method,
-		JSON:    true,
 		Timeout: 60000,
 		URL:     uri,
-		Gzip:    true,
 		Headers: map[string]string{
 			"Connection": "keep-alive",
 		},
+		Gzip: true,
 	}
 
 	if method == "GET" {
@@ -196,6 +210,8 @@ func (c *ProxyClient) SendRequest(options RequestOptions) (*resty.Response, erro
 	resp, err := c.client.R().
 		SetBody(body).
 		SetHeader("Content-Type", "application/json").
+		SetHeader("Accept-Encoding", "gzip, deflate, br").
+		SetHeader("Connection", "keep-alive").
 		Post("/api/proxy")
 
 	return resp, err
@@ -235,7 +251,6 @@ func (c *ProxyClient) SendUploadRequest(file, relPath string) (res *UploadImageR
 	resp, err := c.client.R().
 		SetResult(UploadImageResponse{}).
 		SetHeader("Content-Type", "multipart/form-data").
-		SetHeader("Accept-Encoding", "*").
 		SetFileReader("file", "filename.jpeg", bytes.NewReader(imgData)).
 		SetMultipartFormData(
 			map[string]string{

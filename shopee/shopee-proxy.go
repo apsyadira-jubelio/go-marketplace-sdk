@@ -65,7 +65,6 @@ func NewProxyClient(app ProxyAppConfig) *ProxyClient {
 	// Create resty client
 	client := resty.New().
 		SetBaseURL(app.ProxyURL).
-		SetTimeout(15 * time.Second).
 		OnBeforeRequest(
 			func(c *resty.Client, r *resty.Request) error {
 				if app.EnableLog {

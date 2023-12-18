@@ -13,15 +13,16 @@ func main() {
 	apiURL, _ := url.Parse("https://partner.shopeemobile.com")
 
 	app := shopee.ProxyAppConfig{
-		ProxyURL:   "",
-		PartnerID:  123,
-		PartnerKey: "",
+		ProxyURL:   "https://sp-proxy.jubelio.com",
+		PartnerID:  2005794,
+		PartnerKey: "6971596a5361646e446358774557784e4452436b575057706754534359637648",
 		APIURL:     apiURL,
 	}
 
-	relPath := fmt.Sprintf("/product/get_item_base_info?item_id_list=%d&need_tax_info=true&need_complaint_policy=true", 123)
+	relPath := fmt.Sprintf("/product/get_model_list?item_id=%d", 6308520269)
 	client := shopee.NewProxyClient(app)
-	params := client.WithShopID(123, "123").CreateParams(relPath, "GET", nil, "")
+	params := client.WithShopID(45449350, "444344506646784b7573525279574178").CreateParams(relPath, "GET", nil, "")
+	spew.Dump(params)
 	resp, err := client.SendRequest(params)
 
 	if err != nil {

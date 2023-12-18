@@ -1,5 +1,10 @@
 package shopee
 
+type ProductService interface {
+	GetProductById(shopID uint64, token string, params GetProductParamRequest) (*GetProductResponse, error)
+	GetModelList(shopID uint64, token string, itemID uint64) (*GetModelListResponse, error)
+}
+
 type GetProductResponse struct {
 	BaseResponse
 	Response ItemListResponse `json:"response"`
@@ -98,9 +103,13 @@ type PreOrder struct {
 }
 
 type PriceInfo struct {
-	Currency      string `json:"currency"`
-	OriginalPrice int64  `json:"original_price"`
-	CurrentPrice  int64  `json:"current_price"`
+	Currency                     string  `json:"currency"`
+	OriginalPrice                float64 `json:"original_price"`
+	CurrentPrice                 float64 `json:"current_price"`
+	InflatedPriceOfOriginalPrice float64 `json:"inflated_price_of_original_price"`
+	InflatedPriceOfCurrentPrice  float64 `json:"inflated_price_of_current_price"`
+	SipItemPrice                 float64 `json:"sip_item_price"`
+	SipItemPriceSource           string  `json:"sip_item_price_source"`
 }
 
 type StockInfoV2 struct {
@@ -132,10 +141,6 @@ type GetProductParamRequest struct {
 	NeedComplaintPolicy bool  `url:"need_complaint_policy"`
 }
 
-type ProductService interface {
-	GetProductById(shopID uint64, token string, params GetProductParamRequest) (*GetProductResponse, error)
-}
-
 type ProductServiceOp struct {
 	client *ShopeeClient
 }
@@ -145,5 +150,63 @@ func (s *ProductServiceOp) GetProductById(shopID uint64, token string, params Ge
 
 	resp := new(GetProductResponse)
 	err := s.client.WithShop(uint64(shopID), token).Get(path, resp, params)
+	return resp, err
+}
+
+type GetModelListRequest struct {
+	ItemID uint64 `url:"item_id"`
+}
+
+type GetModelListResponse struct {
+	BaseResponse
+
+	Response GetModelListResponseData `json:"response"`
+}
+
+type TierVariation struct {
+	Name       string                `json:"name"`
+	OptionList []TierVariationOption `json:"option_list"`
+}
+
+type TierVariationOption struct {
+	Option string                    `json:"option"`
+	Image  *TierVariationOptionImage `json:"image,omitempty"`
+}
+
+type TierVariationOptionImage struct {
+	ImageID  string `json:"image_id"`
+	ImageURL string `json:"image_url"`
+}
+
+type GetModelListResponseData struct {
+	TierVariation []TierVariation `json:"tier_variation"`
+	Model         []Model         `json:"model"`
+}
+type Model struct {
+	TierIndex   []int       `json:"tier_index"`
+	ModelID     uint64      `json:"model_id"`
+	ModelSKU    string      `json:"model_sku"`
+	StockInfo   []StockInfo `json:"stock_info"`
+	PriceInfo   []PriceInfo `json:"price_info"`
+	PromotionID uint64      `json:"promotion_id"`
+}
+
+type StockInfo struct {
+	StockType       int    `json:"stock_type"`
+	StockLocationID string `json:"stock_location_id"`
+	NormalStock     int    `json:"normal_stock"`
+	CurrentStock    int    `json:"current_stock"`
+	ReservedStock   int    `json:"reserved_stock"`
+}
+
+func (s *ProductServiceOp) GetModelList(shopID uint64, token string, itemID uint64) (*GetModelListResponse, error) {
+	path := "/product/get_model_list"
+
+	opt := GetModelListRequest{
+		ItemID: itemID,
+	}
+
+	resp := new(GetModelListResponse)
+	err := s.client.WithShop(uint64(shopID), token).Get(path, resp, opt)
 	return resp, err
 }

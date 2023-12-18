@@ -31,7 +31,7 @@ func Test_GetToken(t *testing.T) {
 		})
 
 	// Initiate AuthServiceOp with httpmock as the Client
-	client := tokopedia.NewTokopediaApi(true, "", nil)
+	client := tokopedia.NewClient(true, "", nil)
 
 	// Call GetToken function
 	_, err := client.Auth.GetToken(context.Background(), clientID, secret)

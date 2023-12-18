@@ -30,7 +30,7 @@ func Test_SendMessage(t *testing.T) {
 		})
 
 	// Initiate AuthServiceOp with httpmock as the Client
-	client := tokopedia.NewTokopediaApi(false, token, &fsID)
+	client := tokopedia.NewClient(false, token, &fsID)
 
 	var req tokopedia.TokopediaMessageText
 	loadMockData("send_message_req.json", &req)

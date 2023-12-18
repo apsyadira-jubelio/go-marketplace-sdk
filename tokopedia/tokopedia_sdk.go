@@ -76,7 +76,7 @@ type TokopediaClient struct {
 // It accepts three parameters: isAuth (a boolean to indicate if authentication is required),
 // token (a string representing the authorization token), and fsID (a pointer to an int64 which could be an identifier).
 // The function returns a pointer to a newly created TokopediaAPI instance.
-func NewTokopediaApi(isAuth bool, token string, fsID *int64) *TokopediaClient {
+func NewClient(isAuth bool, token string, fsID *int64) *TokopediaClient {
 
 	// Initialize a new resty client using the TokopediaClient function
 	rc := HTTPTokopediaApi(isAuth)

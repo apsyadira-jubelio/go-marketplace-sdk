@@ -53,6 +53,7 @@ type ProxyAppConfig struct {
 	EnableLog   bool
 	EnableRetry bool
 	RetryCount  int
+	MaxTimeout  time.Duration
 }
 
 // New method creates a new HTTPProxy client.
@@ -62,9 +63,14 @@ func NewProxyClient(app ProxyAppConfig) *ProxyClient {
 		panic(err)
 	}
 
+	if app.MaxTimeout == 0 {
+		app.MaxTimeout = 30 * time.Second
+	}
+
 	// Create resty client
 	client := resty.New().
 		SetBaseURL(app.ProxyURL).
+		SetTimeout(app.MaxTimeout).
 		OnBeforeRequest(
 			func(c *resty.Client, r *resty.Request) error {
 				if app.EnableLog {

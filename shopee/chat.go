@@ -99,6 +99,11 @@ type GetConversationDataResponse struct {
 	ConversationsList []Conversation         `json:"conversations"`
 }
 
+type GetDetailConversation struct {
+	BaseResponse
+	Response Conversation `json:"response"`
+}
+
 type Conversation struct {
 	ConversationID       string `json:"conversation_id"`
 	ToID                 int    `json:"to_id"`

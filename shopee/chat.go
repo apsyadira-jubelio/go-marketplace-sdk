@@ -37,29 +37,32 @@ type Messages struct {
 	Status           string         `json:"status"`
 	Source           string         `json:"source"`
 	Content          ContentMessage `json:"content"`
+	SourceContent    SourceContent  `json:"source_content,omitempty"`
 	MessageOption    int            `json:"message_option"`
 }
 
 type ContentMessage struct {
-	Text             string `json:"text,omitempty"`
-	Url              string `json:"url,omitempty"`
-	ThumbHeight      int    `json:"thumb_height,omitempty"`
-	ThumbWidth       int    `json:"thumb_width,omitempty"`
-	FileServerID     int64  `json:"file_server_id,omitempty"`
-	ShopID           int64  `json:"shop_id,omitempty"`
-	OfferID          int    `json:"offer_id,omitempty"`
-	ProductID        int    `json:"product_id,omitempty"`
-	TaxValue         string `json:"tax_value,omitempty"`
-	PriceBeforeTax   string `json:"price_before_tax,omitempty"`
-	TaxApplicable    bool   `json:"tax_applicable,omitempty"`
-	StickerID        string `json:"stiker_id,omitempty"`
-	StickerPackageID string `json:"sticker_package_id,omitempty"`
-	ItemID           int64  `json:"item_id,omitempty"`
-	OrderID          int64  `json:"order_id,omitempty"`
-	SourceContent    struct {
-		OrderSN string `json:"order_sn,omitempty"`
-		ItemID  int64  `json:"item_id,omitempty"`
-	} `json:"source_content,omitempty"`
+	Text             string        `json:"text,omitempty"`
+	Url              string        `json:"url,omitempty"`
+	ThumbHeight      int           `json:"thumb_height,omitempty"`
+	ThumbWidth       int           `json:"thumb_width,omitempty"`
+	FileServerID     int64         `json:"file_server_id,omitempty"`
+	ShopID           int64         `json:"shop_id,omitempty"`
+	OfferID          int           `json:"offer_id,omitempty"`
+	ProductID        int           `json:"product_id,omitempty"`
+	TaxValue         string        `json:"tax_value,omitempty"`
+	PriceBeforeTax   string        `json:"price_before_tax,omitempty"`
+	TaxApplicable    bool          `json:"tax_applicable,omitempty"`
+	StickerID        string        `json:"stiker_id,omitempty"`
+	StickerPackageID string        `json:"sticker_package_id,omitempty"`
+	ItemID           int64         `json:"item_id,omitempty"`
+	OrderID          int64         `json:"order_id,omitempty"`
+	SourceContent    SourceContent `json:"source_content,omitempty"`
+}
+
+type SourceContent struct {
+	OrderSN string `json:"order_sn,omitempty"`
+	ItemID  int64  `json:"item_id,omitempty"`
 }
 
 type ChatServiceOp struct {

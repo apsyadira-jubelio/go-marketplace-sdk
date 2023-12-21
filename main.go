@@ -4,32 +4,27 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"time"
 
-	"github.com/apsyadira-jubelio/go-marketplace-sdk/shopee"
+	"github.com/apsyadira-jubelio/go-marketplace-sdk/tokopedia"
 	"github.com/davecgh/go-spew/spew"
 )
 
 func main() {
-	apiURL, _ := url.Parse("https://partner.shopeemobile.com")
-
-	app := shopee.ProxyAppConfig{
-		ProxyURL:   "https://sp-proxy.jubelio.com",
-		PartnerID:  123,
-		PartnerKey: "",
-		APIURL:     apiURL,
-		MaxTimeout: 15 * time.Second,
+	APIURL, _ := url.Parse("https://fs.tokopedia.net")
+	appConfig := tokopedia.ProxyAppConfig{
+		ProxyURL: "",
+		AppID:    123,
+		APIURL:   APIURL,
 	}
 
-	relPath := fmt.Sprintf("/sellerchat/get_one_conversation?conversation_id=%d", 13)
-	client := shopee.NewProxyClient(app)
-	params := client.WithShopID(1, "704e4d586a6350774c526d6565455078").CreateParams(relPath, "GET", nil, "")
-	spew.Dump(params)
-	resp, err := client.SendRequest(params)
+	client := tokopedia.NewProxyClient(appConfig)
+	relPath := fmt.Sprintf("/inventory/v1/fs/%d/product/info?product_id=%d", 123, 123)
+	params := client.SetAccessToken("").CreateParams(relPath, "GET", nil)
+	response, err := client.SendRequest("/api/proxy", params)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	spew.Dump(resp)
+	spew.Dump(response.Body())
 }

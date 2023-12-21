@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"path"
 	"strings"
 	"time"
 
@@ -116,14 +115,8 @@ func (c *ProxyClient) SetAccessToken(token string) *ProxyClient {
 
 func (c *ProxyClient) generateFullURL(relPath string) string {
 	if strings.HasPrefix(relPath, "/") {
-
 		// make sure it's a relative path
 		relPath = strings.TrimLeft(relPath, "/")
-	}
-
-	// Combine the relative path with the Tokopedia API if not init auth
-	if !c.IsAuth {
-		relPath = path.Join("v1", relPath)
 	}
 
 	rel, err := url.Parse(relPath)

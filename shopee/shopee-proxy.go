@@ -5,8 +5,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -20,7 +18,7 @@ import (
 )
 
 type ProxyClient struct {
-	client      *resty.Client
+	Client      *resty.Client
 	AccessToken string
 	appConfig   ProxyAppConfig
 
@@ -74,7 +72,6 @@ func NewProxyClient(app ProxyAppConfig) *ProxyClient {
 		OnBeforeRequest(
 			func(c *resty.Client, r *resty.Request) error {
 				if app.EnableLog {
-					log.Printf("=================================")
 					log.Printf("Request: %s %s", r.Method, r.URL)
 				}
 
@@ -84,7 +81,6 @@ func NewProxyClient(app ProxyAppConfig) *ProxyClient {
 			func(c *resty.Client, r *resty.Response) error {
 				if app.EnableLog {
 					log.Println("Response Status", r.Status())
-					log.Printf("=================================")
 				}
 				return nil
 			})
@@ -110,7 +106,7 @@ func NewProxyClient(app ProxyAppConfig) *ProxyClient {
 	}
 
 	return &ProxyClient{
-		client:      client,
+		Client:      client,
 		AccessToken: app.AccessToken,
 		ShopID:      app.ShopID,
 		MerchantID:  app.MerchantID,
@@ -212,7 +208,7 @@ func (c *ProxyClient) SendRequest(options RequestOptions) (*resty.Response, erro
 		"requestOption": options,
 	}
 
-	resp, err := c.client.R().
+	resp, err := c.Client.R().
 		SetBody(body).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept-Encoding", "gzip, deflate, br").
@@ -224,7 +220,7 @@ func (c *ProxyClient) SendRequest(options RequestOptions) (*resty.Response, erro
 
 // SendFormDataRequest sends a multipart/form-data request with the given file and URI
 // this is used to upload an image to our proxy server
-func (c *ProxyClient) SendUploadRequest(file, relPath string) (res *UploadImageResponse, err error) {
+func (c *ProxyClient) SendUploadRequest(file, relPath string) (res *resty.Response, err error) {
 
 	// Download the image from the URL
 	// Instead of using the io.Copy, we use http.Get to download the image directly
@@ -253,7 +249,7 @@ func (c *ProxyClient) SendUploadRequest(file, relPath string) (res *UploadImageR
 	// Set up and execute the request with the image data as the body
 	// and the multipart/form-data content type header
 	// This is used to upload an image to our proxy server using the Shopee API
-	resp, err := c.client.R().
+	resp, err := c.Client.R().
 		SetResult(UploadImageResponse{}).
 		SetHeader("Content-Type", "multipart/form-data").
 		SetFileReader("file", "filename.jpeg", bytes.NewReader(imgData)).
@@ -265,23 +261,5 @@ func (c *ProxyClient) SendUploadRequest(file, relPath string) (res *UploadImageR
 		SetHeader("Connection", "keep-alive").
 		Post("/api/proxy/upload-image")
 
-	// Enhanced error handling and response inspection
-	if err != nil {
-		return nil, errors.New("error sending request: " + err.Error())
-	}
-
-	// Inspect response status code
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d, response: %s", resp.StatusCode(), resp.String())
-	}
-
-	// Check for valid JSON response body and unmarshal it
-	// If the response is not valid JSON, return an error with the response body
-	// If the response is valid JSON, return the response body as an UploadImageResponse
-	err = json.Unmarshal(resp.Body(), &res)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return resp, nil
 }

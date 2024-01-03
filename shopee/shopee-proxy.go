@@ -164,11 +164,15 @@ func (c *ProxyClient) generateFullURL(relPath string) string {
 
 	// Add query parameters to the URL with the signature and timestamp
 	query := u.Query()
+	query.Add("partner_id", fmt.Sprintf("%d", c.appConfig.PartnerID))
+
+	if c.ShopID != 0 {
+		query.Add("shop_id", fmt.Sprintf("%d", c.ShopID))
+		query.Add("access_token", c.AccessToken)
+	}
+
 	query.Add("timestamp", fmt.Sprintf("%d", timestamp))
 	query.Add("sign", signature)
-	query.Add("shop_id", fmt.Sprintf("%d", c.ShopID))
-	query.Add("access_token", c.AccessToken)
-	query.Add("partner_id", fmt.Sprintf("%d", c.appConfig.PartnerID))
 
 	// Encode the query parameters and set them in the URL
 	// This is necessary because the URL is used in the request body
@@ -210,8 +214,6 @@ func (c *ProxyClient) SendRequest(options RequestOptions) (*resty.Response, erro
 
 	resp, err := c.Client.R().
 		SetBody(body).
-		SetHeader("Content-Type", "application/json").
-		SetHeader("Accept-Encoding", "gzip, deflate, br").
 		SetHeader("Connection", "keep-alive").
 		Post("/api/proxy")
 

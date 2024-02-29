@@ -147,7 +147,7 @@ type MessagesListData struct {
 	AutoReply       string `json:"auto_reply"`
 	ToAccountType   string `json:"to_account_type"`
 	SiteID          string `json:"site_id"`
-	TemplateID      string `json:"template_id"`
+	TemplateID      int    `json:"template_id"`
 	FromAccountID   string `json:"from_account_id"`
 	Status          string `json:"status"`
 }

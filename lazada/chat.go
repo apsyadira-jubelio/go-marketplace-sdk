@@ -143,7 +143,7 @@ type MessagesListData struct {
 	Type            string `json:"type"`
 	Content         string `json:"content"`
 	ToAccountID     string `json:"to_account_id"`
-	SendTime        string `json:"send_time"`
+	SendTime        int    `json:"send_time"`
 	AutoReply       string `json:"auto_reply"`
 	ToAccountType   string `json:"to_account_type"`
 	SiteID          string `json:"site_id"`

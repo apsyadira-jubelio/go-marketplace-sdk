@@ -131,8 +131,8 @@ type GetMessageResponse struct {
 type GetMessageResponseData struct {
 	LastMessageID string             `json:"last_message_id"`
 	MessageList   []MessagesListData `json:"message_list"`
-	NextStartTime string             `json:"next_start_time"`
-	HasMore       string             `json:"has_more"`
+	NextStartTime int                `json:"next_start_time"`
+	HasMore       bool               `json:"has_more"`
 }
 
 type MessagesListData struct {

@@ -136,7 +136,7 @@ type GetMessageResponseData struct {
 }
 
 type MessagesListData struct {
-	FromAccountType string `json:"from_account_type"`
+	FromAccountType int    `json:"from_account_type"`
 	ProcessMsg      string `json:"process_msg"`
 	SessionID       string `json:"session_id"`
 	MessageID       string `json:"message_id"`
@@ -145,7 +145,7 @@ type MessagesListData struct {
 	ToAccountID     string `json:"to_account_id"`
 	SendTime        int    `json:"send_time"`
 	AutoReply       string `json:"auto_reply"`
-	ToAccountType   string `json:"to_account_type"`
+	ToAccountType   int    `json:"to_account_type"`
 	SiteID          string `json:"site_id"`
 	TemplateID      int    `json:"template_id"`
 	FromAccountID   string `json:"from_account_id"`

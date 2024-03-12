@@ -210,3 +210,36 @@ func (s *ProductServiceOp) GetModelList(shopID uint64, token string, itemID uint
 	err := s.client.WithShop(uint64(shopID), token).Get(path, resp, opt)
 	return resp, err
 }
+
+type GetProductListResponse struct {
+	BaseResponse
+
+	Response ProductListData `json:"response"`
+}
+
+type GetProductListParamRequest struct {
+	Offset     int    `url:"offset"`
+	PageSize   int    `url:"page_size"`
+	ItemStatus string `url:"item_status"`
+}
+
+type ProductListData struct {
+	Item        []ItemProductList `json:"item"`
+	TotalCount  int               `json:"total_count"`
+	HasNextPage bool              `json:"has_next_page"`
+	NextOffset  int               `json:"next_offset"`
+}
+
+type ItemProductList struct {
+	ItemID     int64  `json:"item_id"`
+	ItemStatus string `json:"item_status"`
+	UpdateTime int    `json:"update_time"`
+}
+
+func (s *ProductServiceOp) GetProductlList(shopID uint64, token string, paramRequest GetProductListParamRequest) (*GetModelListResponse, error) {
+	path := "product/get_item_list"
+
+	resp := new(GetModelListResponse)
+	err := s.client.WithShop(uint64(shopID), token).Get(path, resp, paramRequest)
+	return resp, err
+}

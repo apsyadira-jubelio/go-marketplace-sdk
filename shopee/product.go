@@ -236,10 +236,44 @@ type ItemProductList struct {
 	UpdateTime int    `json:"update_time"`
 }
 
-func (s *ProductServiceOp) GetProductlList(shopID uint64, token string, paramRequest GetProductListParamRequest) (*GetModelListResponse, error) {
-	path := "product/get_item_list"
+func (s *ProductServiceOp) GetProductlList(shopID uint64, token string, paramRequest GetProductListParamRequest) (*GetProductListResponse, error) {
+	path := "/product/get_item_list"
 
-	resp := new(GetModelListResponse)
+	resp := new(GetProductListResponse)
+	err := s.client.WithShop(uint64(shopID), token).Get(path, resp, paramRequest)
+	return resp, err
+}
+
+type GetProductWithSearchByNameResponse struct {
+	BaseResponse
+
+	Response ProductListData `json:"response"`
+}
+
+type GetProductWithSearchByNameRequest struct {
+	Offset     int    `url:"offset"`
+	PageSize   int    `url:"page_size"`
+	ItemStatus string `url:"item_status"`
+	ItemName   string `url:"item_name"`
+}
+
+type GetProductWithSearchByNameData struct {
+	Item        []ItemProductListWithSearchByName `json:"item"`
+	TotalCount  int                               `json:"total_count"`
+	HasNextPage bool                              `json:"has_next_page"`
+	NextOffset  int                               `json:"next_offset"`
+}
+
+type ItemProductListWithSearchByName struct {
+	ItemID     int64  `json:"item_id"`
+	ItemStatus string `json:"item_status"`
+	UpdateTime int    `json:"update_time"`
+}
+
+func (s *ProductServiceOp) GetProductListWithSearchByName(shopID uint64, token string, paramRequest GetProductWithSearchByNameRequest) (*GetProductWithSearchByNameResponse, error) {
+	path := "/product/search_item"
+
+	resp := new(GetProductWithSearchByNameResponse)
 	err := s.client.WithShop(uint64(shopID), token).Get(path, resp, paramRequest)
 	return resp, err
 }

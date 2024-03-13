@@ -6,7 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -232,7 +232,7 @@ func (c *ProxyClient) SendUploadRequest(file, relPath string) (res *resty.Respon
 	}
 
 	// Read the image data from the response body and close it
-	imgData, err := ioutil.ReadAll(respImage.Body)
+	imgData, err := io.ReadAll(respImage.Body)
 	if err != nil {
 		log.Fatalf("Error reading image data: %v", err)
 	}

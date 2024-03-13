@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
+	"golang.org/x/net/proxy"
 )
 
 type ProxyClient struct {
@@ -42,6 +43,7 @@ type RequestOptions struct {
 
 type ProxyAppConfig struct {
 	ProxyURL    string
+	ProxyHost   string
 	PartnerID   uint64
 	PartnerKey  string
 	ShopID      uint64
@@ -52,22 +54,32 @@ type ProxyAppConfig struct {
 	EnableRetry bool
 	RetryCount  int
 	MaxTimeout  time.Duration
+	UseSocks5   bool
 }
 
 // New method creates a new HTTPProxy client.
 func NewProxyClient(app ProxyAppConfig) *ProxyClient {
-	baseURL, err := url.Parse(app.ProxyURL)
-	if err != nil {
-		panic(err)
-	}
 
 	if app.MaxTimeout == 0 {
 		app.MaxTimeout = 30 * time.Second
 	}
 
+	var proxyURL *url.URL
+	var transport *http.Transport
+
+	// Create socks5 proxy agent if app.UseSocks5 is true
+	if app.UseSocks5 {
+		proxyURL, _ = url.Parse(fmt.Sprintf("socks5://%s", app.ProxyHost))
+		dialer, err := proxy.FromURL(proxyURL, proxy.Direct)
+		if err != nil {
+			panic(err)
+		}
+
+		transport = &http.Transport{Dial: dialer.Dial}
+	}
+
 	// Create resty client
 	client := resty.New().
-		SetBaseURL(app.ProxyURL).
 		SetTimeout(app.MaxTimeout).
 		OnBeforeRequest(
 			func(c *resty.Client, r *resty.Request) error {
@@ -84,6 +96,16 @@ func NewProxyClient(app ProxyAppConfig) *ProxyClient {
 				}
 				return nil
 			})
+
+	var baseURL *url.URL
+	if app.UseSocks5 {
+		baseURL, _ = url.Parse(app.APIURL.String())
+		client.SetBaseURL(app.APIURL.String())
+		client.SetTransport(transport)
+	} else {
+		baseURL, _ = url.Parse(app.ProxyURL)
+		client.SetBaseURL(app.ProxyURL)
+	}
 
 	// Enable retry if enabled in config
 	if app.EnableRetry {
@@ -182,42 +204,11 @@ func (c *ProxyClient) generateFullURL(relPath string) string {
 	return uri
 }
 
-func (h *ProxyClient) CreateParams(relPath string, method string, data interface{}, querString string) (res RequestOptions) {
+func (h *ProxyClient) GetFullPath(relPath string) (res string) {
 	// Make the full url based on the relative path
 	// and generate the signature and timestamp for the request
 	uri := h.generateFullURL(relPath)
-
-	options := RequestOptions{
-		Method:  method,
-		Timeout: 60000,
-		URL:     uri,
-		Headers: map[string]string{
-			"Connection": "keep-alive",
-		},
-		Gzip: true,
-	}
-
-	if method == "GET" {
-		options.Qs = querString
-	} else if method == "POST" {
-		options.Body = data
-	}
-
-	return options
-}
-
-func (c *ProxyClient) SendRequest(options RequestOptions) (*resty.Response, error) {
-	// Set up and execute the request
-	body := map[string]interface{}{
-		"requestOption": options,
-	}
-
-	resp, err := c.Client.R().
-		SetBody(body).
-		SetHeader("Connection", "keep-alive").
-		Post("/api/proxy")
-
-	return resp, err
+	return uri
 }
 
 // SendFormDataRequest sends a multipart/form-data request with the given file and URI

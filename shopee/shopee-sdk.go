@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/google/go-querystring/query"
+	"golang.org/x/net/proxy"
 )
 
 const (
@@ -27,11 +28,13 @@ const (
 )
 
 type AppConfig struct {
-	PartnerID   int    `env:"SHOPEE_PARTNER_ID"`
-	PartnerKey  string `env:"SHOPEE_PARTNER_KEY"`
-	RedirectURL string `env:"SHOPEE_REDIRECT_URL"`
-	Client      *ShopeeClient
-	APIURL      string `env:"SHOPEE_API_URL"`
+	PartnerID    int
+	PartnerKey   string
+	RedirectURL  string
+	Client       *ShopeeClient
+	APIURL       string
+	EnableSocks5 bool
+	SockAddress  string
 }
 
 type ShopeeClient struct {
@@ -69,11 +72,31 @@ func NewClient(app AppConfig, opts ...Option) *ShopeeClient {
 		panic(err)
 	}
 
+	var proxyURL *url.URL
+	var transport *http.Transport
+	if app.EnableSocks5 {
+		proxyURL, err = url.Parse(fmt.Sprintf("socks5://%s", app.SockAddress))
+		if err != nil {
+			panic(err)
+		}
+
+		dialer, err := proxy.FromURL(proxyURL, proxy.Direct)
+		if err != nil {
+			panic(err)
+		}
+
+		transport = &http.Transport{Dial: dialer.Dial}
+	}
+
 	c := &ShopeeClient{
 		Client:    &http.Client{},
 		log:       &LeveledLogger{},
 		appConfig: app,
 		baseURL:   baseURL,
+	}
+
+	if app.EnableSocks5 {
+		c.Client.Transport = transport
 	}
 
 	c.Auth = &AuthServiceOp{client: c}

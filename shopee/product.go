@@ -3,6 +3,8 @@ package shopee
 type ProductService interface {
 	GetProductById(shopID uint64, token string, params GetProductParamRequest) (*GetProductResponse, error)
 	GetModelList(shopID uint64, token string, itemID uint64) (*GetModelListResponse, error)
+	GetProductWithSearch(shopID uint64, token string, paramRequest GetProductWithSearchRequest) (*GetProductWithSearchResponse, error)
+	GetProductlList(shopID uint64, token string, paramRequest GetProductListParamRequest) (*GetProductListResponse, error)
 }
 
 type GetProductResponse struct {
@@ -244,36 +246,36 @@ func (s *ProductServiceOp) GetProductlList(shopID uint64, token string, paramReq
 	return resp, err
 }
 
-type GetProductWithSearchByNameResponse struct {
+type GetProductWithSearchResponse struct {
 	BaseResponse
 
 	Response ProductListData `json:"response"`
 }
 
-type GetProductWithSearchByNameRequest struct {
+type GetProductWithSearchRequest struct {
 	Offset     int    `url:"offset"`
 	PageSize   int    `url:"page_size"`
 	ItemStatus string `url:"item_status"`
 	ItemName   string `url:"item_name"`
 }
 
-type GetProductWithSearchByNameData struct {
-	Item        []ItemProductListWithSearchByName `json:"item"`
-	TotalCount  int                               `json:"total_count"`
-	HasNextPage bool                              `json:"has_next_page"`
-	NextOffset  int                               `json:"next_offset"`
+type GetProductWithSearchData struct {
+	Item        []ItemProductListWithSearch `json:"item"`
+	TotalCount  int                         `json:"total_count"`
+	HasNextPage bool                        `json:"has_next_page"`
+	NextOffset  int                         `json:"next_offset"`
 }
 
-type ItemProductListWithSearchByName struct {
+type ItemProductListWithSearch struct {
 	ItemID     int64  `json:"item_id"`
 	ItemStatus string `json:"item_status"`
 	UpdateTime int    `json:"update_time"`
 }
 
-func (s *ProductServiceOp) GetProductListWithSearchByName(shopID uint64, token string, paramRequest GetProductWithSearchByNameRequest) (*GetProductWithSearchByNameResponse, error) {
+func (s *ProductServiceOp) GetProductWithSearch(shopID uint64, token string, paramRequest GetProductWithSearchRequest) (*GetProductWithSearchResponse, error) {
 	path := "/product/search_item"
 
-	resp := new(GetProductWithSearchByNameResponse)
+	resp := new(GetProductWithSearchResponse)
 	err := s.client.WithShop(uint64(shopID), token).Get(path, resp, paramRequest)
 	return resp, err
 }

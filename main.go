@@ -1,53 +1,76 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
+	"log"
 	"net/url"
 	"os"
-	"time"
+	"strconv"
 
 	"github.com/apsyadira-jubelio/go-marketplace-sdk/shopee"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	godotenv.Load()
+
 	// playground
+	partnerID, _ := strconv.Atoi(os.Getenv("SHOPEE_PARTNER_ID"))
+	shopID, _ := strconv.Atoi(os.Getenv("SHOP_ID"))
 	APIURL, _ := url.Parse("https://partner.shopeemobile.com")
-	appConfig := shopee.ProxyAppConfig{
-		ProxyURL:    "https://sp-proxy.jubelio.com",
-		PartnerID:   uint64(123),
-		PartnerKey:  "",
-		MaxTimeout:  1 * time.Minute,
-		APIURL:      APIURL,
-		AccessToken: "",
-		ShopID:      123,
+
+	appConfig := shopee.AppConfig{
+		PartnerID:    partnerID,
+		PartnerKey:   os.Getenv("SHOPEE_PARTNER_KEY"),
+		RedirectURL:  "",
+		APIURL:       APIURL.String(),
+		EnableSocks5: true,
+		SockAddress:  os.Getenv("SOCKS_ADDRESS"),
 	}
 
-	client := shopee.NewProxyClient(appConfig)
-	// relPath := "/product/get_item_list?offset=0&page_size=5&item_status=NORMAL" // List without search
-	relPath := "/product/search_item?item_name=indomie&page_size=1&item_status=NORMAL"
-	params := client.CreateParams(relPath, "GET", nil, "")
-	params.JSON = true
-
-	spew.Dump(params)
-	response, err := client.SendRequest(params)
+	spew.Dump(appConfig)
+	client := shopee.NewClient(appConfig, shopee.WithRetry(3))
+	resp, err := client.Product.GetProductlList(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetProductListParamRequest{
+		PageSize:   100,
+		Offset:     0,
+		ItemStatus: "NORMAL",
+	})
 
 	if err != nil {
-		fmt.Println("error cause:", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
-	var resp = make(map[string]interface{}, 0)
-	err = json.Unmarshal(response.Body(), &resp)
+
+	itemsID := make([]int, 0, resp.Response.TotalCount)
+	for _, item := range resp.Response.Item {
+		itemsID = append(itemsID, int(item.ItemID))
+	}
+
+	// Function to batch get product details
+	getProductDetailsInBatches := func(ids []int) ([]shopee.ItemListData, error) {
+		var products []shopee.ItemListData
+		batchSize := 50
+
+		for i := 0; i < len(ids); i += batchSize {
+			end := i + batchSize
+			if end > len(ids) {
+				end = len(ids)
+			}
+			batch, err := client.Product.GetProductById(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetProductParamRequest{
+				ItemIDList: ids[i:end],
+			})
+			if err != nil {
+				return nil, err // Consider handling errors differently if partial results are acceptable
+			}
+			products = append(products, batch.Response.ItemList...)
+		}
+
+		return products, nil
+	}
+
+	products, err := getProductDetailsInBatches(itemsID)
 	if err != nil {
-		fmt.Println("error cause:", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
-	if response.StatusCode() != 200 {
-		fmt.Println("response not OK:", response.StatusCode())
-		os.Exit(1)
-	}
-
-	spew.Dump(resp)
+	spew.Dump(products)
 }

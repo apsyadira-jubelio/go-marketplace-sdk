@@ -3,6 +3,7 @@ package shopee
 type ChatService interface {
 	GetMessage(shopID uint64, token string, params GetMessageParamsRequest) (*GetMessageResponse, error)
 	GetConversationList(shopID uint64, token string, params GetConversationParamsRequest) (*GetConversationResponse, error)
+	GetOneConversation(shopID uint64, token string, params GetMessageParamsRequest) (*GetDetailConversation, error)
 	SendMessage(shopID uint64, token string, request SendMessageRequest) (*GetSendMessageResponse, error)
 	UploadImage(shopID uint64, token string, filename string) (*UploadImageResponse, error)
 }
@@ -99,32 +100,6 @@ type GetConversationDataResponse struct {
 	ConversationsList []Conversation         `json:"conversations"`
 }
 
-type GetDetailConversation struct {
-	BaseResponse
-	Response Conversation `json:"response"`
-}
-
-type Conversation struct {
-	ConversationID       string `json:"conversation_id"`
-	ToID                 int    `json:"to_id"`
-	ToName               string `json:"to_name"`
-	ToAvatar             string `json:"to_avatar"`
-	ShopID               int    `json:"shop_id"`
-	UnreadCount          int    `json:"unread_count"`
-	Pinned               bool   `json:"pinned"`
-	Mute                 bool   `json:"mute"`
-	LastReadMessageID    string `json:"last_read_message_id"`
-	LatestMessageID      string `json:"latest_message_id"`
-	LatestMessageType    string `json:"latest_message_type"`
-	LatestMessageContent struct {
-		Text string `json:"text"`
-	} `json:"latest_message_content"`
-	LatestMessageFromID      int    `json:"latest_message_from_id"`
-	LastMessageTimestamp     int64  `json:"last_message_timestamp"`
-	LastMessageOption        int    `json:"last_message_option"`
-	MaxGeneralOptionHideTime string `json:"max_general_option_hide_time"`
-}
-
 type ConversationPageResult struct {
 	PageSize   int `json:"page_size"`
 	NextCursor struct {
@@ -214,5 +189,40 @@ func (s *ChatServiceOp) UploadImage(shopID uint64, token string, filename string
 
 	resp := new(UploadImageResponse)
 	err := s.client.WithShop(uint64(shopID), token).Upload(path, "file", filename, resp)
+	return resp, err
+}
+
+type GetDetailConversation struct {
+	BaseResponse
+	Response Conversation `json:"response"`
+}
+
+type Conversation struct {
+	ConversationID       string `json:"conversation_id"`
+	ToID                 int    `json:"to_id"`
+	ToName               string `json:"to_name"`
+	ToAvatar             string `json:"to_avatar"`
+	ShopID               int    `json:"shop_id"`
+	UnreadCount          int    `json:"unread_count"`
+	Pinned               bool   `json:"pinned"`
+	Mute                 bool   `json:"mute"`
+	LastReadMessageID    string `json:"last_read_message_id"`
+	LatestMessageID      string `json:"latest_message_id"`
+	LatestMessageType    string `json:"latest_message_type"`
+	LatestMessageContent struct {
+		Text string `json:"text"`
+	} `json:"latest_message_content"`
+	LatestMessageFromID      int    `json:"latest_message_from_id"`
+	LastMessageTimestamp     int64  `json:"last_message_timestamp"`
+	LastMessageOption        int    `json:"last_message_option"`
+	MaxGeneralOptionHideTime string `json:"max_general_option_hide_time"`
+}
+
+// Use GetMessageParamsRequest, need param convesation_id
+func (s *ChatServiceOp) GetOneConversation(shopID uint64, token string, params GetMessageParamsRequest) (*GetDetailConversation, error) {
+	path := "/sellerchat/get_one_conversation"
+
+	resp := new(GetDetailConversation)
+	err := s.client.WithShop(uint64(shopID), token).Get(path, resp, nil)
 	return resp, err
 }

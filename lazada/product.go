@@ -20,16 +20,16 @@ type GetProductsResponse struct {
 }
 
 type DataGetProducts struct {
-	TotalProducts string     `json:"total_products"`
+	TotalProducts int        `json:"total_products"`
 	Products      []Products `json:"products"`
 }
 
 type Products struct {
-	CreatedTime     string         `json:"created_time"`
-	UpdatedTime     string         `json:"updated_time"`
-	Images          string         `json:"images"`
+	CreatedTime     interface{}    `json:"created_time"`
+	UpdatedTime     interface{}    `json:"updated_time"`
+	Images          []string       `json:"images"`
 	Skus            []Skus         `json:"skus"`
-	ItemID          string         `json:"item_id"`
+	ItemID          int            `json:"item_id"`
 	HiddenStatus    string         `json:"hiddenStatus"`
 	SuspendedSkus   []interface{}  `json:"suspendedSkus"`
 	SubStatus       string         `json:"subStatus"`
@@ -45,7 +45,7 @@ type Products struct {
 type Skus struct {
 	Status          string   `json:"Status"`
 	Quantity        int      `json:"quantity"`
-	ProductWeight   string   `json:"product_weight"`
+	ProductWeight   int      `json:"product_weight"`
 	Images          []string `json:"Images"`
 	SellerSku       string   `json:"SellerSku"`
 	ShopSku         string   `json:"ShopSku"`
@@ -54,8 +54,8 @@ type Skus struct {
 	SpecialToTime   string   `json:"special_to_time"`
 	SpecialFromTime string   `json:"special_from_time"`
 	PackageHeight   string   `json:"package_height"`
-	SpecialPrice    int      `json:"special_price"`
-	Price           int      `json:"price"`
+	SpecialPrice    float64  `json:"special_price"`
+	Price           float64  `json:"price"`
 	PackageLength   string   `json:"package_length"`
 	PackageWeight   string   `json:"package_weight"`
 	Available       int      `json:"Available"`

@@ -29,7 +29,7 @@ func main() {
 	}
 
 	spew.Dump(appConfig)
-	client := shopee.NewClient(appConfig, shopee.WithRetry(3))
+	client := shopee.NewClient(appConfig, shopee.WithRetry(3), shopee.WithSocks5(os.Getenv("SOCKS_ADDRESS")))
 	resp, err := client.Product.GetProductlList(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetProductListParamRequest{
 		PageSize:   100,
 		Offset:     0,

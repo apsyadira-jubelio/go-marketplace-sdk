@@ -9,11 +9,11 @@ require (
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/gommon v0.4.0
+	golang.org/x/net v0.0.0-20211029224645-99673261e6eb
 )
 
 require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/net v0.0.0-20211029224645-99673261e6eb // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 

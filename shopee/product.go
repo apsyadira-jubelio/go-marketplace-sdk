@@ -185,12 +185,13 @@ type GetModelListResponseData struct {
 	Model         []Model         `json:"model"`
 }
 type Model struct {
-	TierIndex   []int       `json:"tier_index"`
-	ModelID     uint64      `json:"model_id"`
-	ModelSKU    string      `json:"model_sku"`
-	StockInfo   []StockInfo `json:"stock_info"`
-	PriceInfo   []PriceInfo `json:"price_info"`
-	PromotionID uint64      `json:"promotion_id"`
+	TierIndex   []int        `json:"tier_index"`
+	ModelID     uint64       `json:"model_id"`
+	ModelSKU    string       `json:"model_sku"`
+	StockInfo   []StockInfo  `json:"stock_info"`
+	StockInfoV2 *StockInfoV2 `json:"stock_info_v2"`
+	PriceInfo   []PriceInfo  `json:"price_info"`
+	PromotionID uint64       `json:"promotion_id"`
 }
 
 type StockInfo struct {

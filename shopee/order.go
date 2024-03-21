@@ -2,6 +2,7 @@ package shopee
 
 type OrderService interface {
 	GetOrderDetailByOrderSN(shopID uint64, token string, params GetOrderDetailParamsRequest) (*GetOrderDetailResponse, error)
+	GetListOrder(shopID uint64, token string, params GetListOrderParamsRequest) (*GetListOrderResponse, error)
 	DownloadInvoiceByOrderID(shopID uint64, token string, params DownloadInvoiceParamsRequest) error
 }
 
@@ -87,4 +88,33 @@ func (o *OrderServiceOp) DownloadInvoiceByOrderID(shopID uint64, token string, p
 	path := "/order/download_invoice_doc"
 	err := o.client.WithShop(uint64(shopID), token).Get(path, "", params)
 	return err
+}
+
+type GetListOrderParamsRequest struct {
+	TimeRangeField string `url:"time_range_field"` // create/update time
+	TimeFrom       int    `url:"time_from"`        // epoch based
+	TimeTo         int    `url:"time_to"`
+	PageSize       int    `url:"page_size"`
+	OrderStatus    string `url:"order_status,omitempty"` // UNPAID/READY_TO_SHIP/PROCESSED/SHIPPED/COMPLETED/IN_CANCEL/CANCELLED/INVOICE_PENDING
+}
+
+type GetListOrderResponse struct {
+	BaseResponse
+	Response ResponseOrderList `json:"response"`
+}
+
+type ResponseOrderList struct {
+	More       bool          `json:"more"`
+	NextCursor string        `json:"next_cursor"`
+	OrderList  []OrderSNList `json:"order_list"`
+}
+type OrderSNList struct {
+	OrderSn string `json:"order_sn"`
+}
+
+func (o *OrderServiceOp) GetListOrder(shopID uint64, token string, params GetListOrderParamsRequest) (*GetListOrderResponse, error) {
+	path := "/order/get_order_list"
+	resp := new(GetListOrderResponse)
+	err := o.client.WithShop(uint64(shopID), token).Get(path, resp, params)
+	return resp, err
 }

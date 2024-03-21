@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/apsyadira-jubelio/go-marketplace-sdk/shopee"
 	"github.com/davecgh/go-spew/spew"
@@ -30,24 +32,31 @@ func main() {
 
 	spew.Dump(appConfig)
 	client := shopee.NewClient(appConfig, shopee.WithRetry(3), shopee.WithSocks5(os.Getenv("SOCKS_ADDRESS")))
-	resp, err := client.Product.GetProductlList(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetProductListParamRequest{
-		PageSize:   100,
-		Offset:     0,
-		ItemStatus: "NORMAL",
+	now := time.Now().Local() // now, 21 march
+	tanggal_7 := now.AddDate(0, 0, -14)
+	resp, err := client.Order.GetListOrder(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetListOrderParamsRequest{
+		PageSize:       100,
+		TimeRangeField: "create_time",
+		TimeFrom:       int(tanggal_7.Unix()),
+		TimeTo:         int(now.Unix()),
+		// OrderStatus:    "UNPAID",
 	})
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	itemsID := make([]int, 0, resp.Response.TotalCount)
-	for _, item := range resp.Response.Item {
-		itemsID = append(itemsID, int(item.ItemID))
+	if resp == nil || len(resp.Response.OrderList) == 0 {
+		log.Fatal("order nil")
 	}
 
-	// Function to batch get product details
-	getProductDetailsInBatches := func(ids []int) ([]shopee.ItemListData, error) {
-		var products []shopee.ItemListData
+	orderIDs := make([]string, 0, len(resp.Response.OrderList))
+	for _, order := range resp.Response.OrderList {
+		orderIDs = append(orderIDs, order.OrderSn)
+	}
+
+	getOrderDetailsInBatches := func(ids []string) ([]shopee.OrderList, error) {
+		var orders []shopee.OrderList
 		batchSize := 50
 
 		for i := 0; i < len(ids); i += batchSize {
@@ -55,22 +64,26 @@ func main() {
 			if end > len(ids) {
 				end = len(ids)
 			}
-			batch, err := client.Product.GetProductById(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetProductParamRequest{
-				ItemIDList: ids[i:end],
+			log.Println("check index array:", ids[i:end])
+			batch, err := client.Order.GetOrderDetailByOrderSN(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetOrderDetailParamsRequest{
+				OrderSNList: strings.Join(ids[i:end], ","),
 			})
 			if err != nil {
-				return nil, err // Consider handling errors differently if partial results are acceptable
+				log.Printf("error cause:%+v\n", err)
+				return nil, err
 			}
-			products = append(products, batch.Response.ItemList...)
+			// log.Printf("check data number %d we print %+v\n:", i, batch)
+			orders = append(orders, batch.OrderListResponse.OrderList...)
 		}
 
-		return products, nil
+		return orders, nil
 	}
 
-	products, err := getProductDetailsInBatches(itemsID)
+	orders, err := getOrderDetailsInBatches(orderIDs)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("error cause:%+v\n", err)
+		return
 	}
 
-	spew.Dump(products)
+	spew.Dump(orders)
 }

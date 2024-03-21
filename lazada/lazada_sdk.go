@@ -11,7 +11,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"io/ioutil"
+
 	"net/http"
 	"net/url"
 	"reflect"
@@ -253,7 +253,7 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*Laz
 func CheckResponse(r *http.Response) (*LazadaResponse, error) {
 	if c := r.StatusCode; 200 <= c && c <= 299 {
 		lazResp := &LazadaResponse{}
-		data, err := ioutil.ReadAll(r.Body)
+		data, err := io.ReadAll(r.Body)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to read body")
 		}
@@ -264,7 +264,7 @@ func CheckResponse(r *http.Response) (*LazadaResponse, error) {
 
 		switch lazResp.Code {
 		case "0":
-			r.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+			r.Body = io.NopCloser(bytes.NewBuffer(data))
 			return lazResp, nil
 		default:
 			var errResp ResponseError
@@ -274,7 +274,7 @@ func CheckResponse(r *http.Response) (*LazadaResponse, error) {
 	}
 
 	errResp := &ResponseError{}
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err == nil && data != nil {
 		json.Unmarshal(data, &errResp)
 	}
@@ -361,9 +361,9 @@ func (c *Client) logBody(body *io.ReadCloser, format string) {
 	if body == nil || *body == nil {
 		return
 	}
-	b, _ := ioutil.ReadAll(*body)
+	b, _ := io.ReadAll(*body)
 	if len(b) > 0 {
 		c.log.Debugf(format, string(b))
 	}
-	*body = ioutil.NopCloser(bytes.NewBuffer(b))
+	*body = io.NopCloser(bytes.NewBuffer(b))
 }

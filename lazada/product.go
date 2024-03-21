@@ -9,13 +9,9 @@ import (
 type ProductService service
 
 type GetProductsParams struct {
-	Filter       string `url:"filter,omitempty"`
-	Offset       string `url:"offset"`
-	Limit        string `url:"limit"`
-	CreateBefore string `url:"create_before"`
-	UpdateBefore string `url:"update_before"`
-	CreateAfter  string `url:"create_after"`
-	UpdateAfter  string `url:"update_after"`
+	Filter string `url:"filter,omitempty"`
+	Offset string `url:"offset"`
+	Limit  string `url:"limit"`
 }
 
 type GetProductsResponse struct {

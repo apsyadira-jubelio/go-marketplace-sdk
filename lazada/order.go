@@ -122,3 +122,113 @@ func (o *OrderService) GetMultipleOrdersItems(ctx context.Context, opts *GetMult
 
 	return res, nil
 }
+
+type GetOrdersParam struct {
+	Offset       string `url:"offset"`
+	Limit        string `url:"limit"`
+	CreatedAfter string `url:"created_after"` //RFC 3339 Format
+	SortBy       string `url:"sort_by,omitempty"`
+}
+
+type GetOrdersResponse struct {
+	BaseResponse
+	Data DataGetOrders `json:"data"`
+}
+
+type DataGetOrders struct {
+	Count      int      `json:"count"`
+	CountTotal int      `json:"countTotal"`
+	Orders     []Orders `json:"orders"`
+}
+
+type Orders struct {
+	AddressBilling              AddressBilling  `json:"address_billing"`
+	AddressShipping             AddressShipping `json:"address_shipping"`
+	BranchNumber                string          `json:"branch_number"`
+	BuyerNote                   string          `json:"buyer_note"`
+	CreatedAt                   string          `json:"created_at"`
+	CustomerFirstName           string          `json:"customer_first_name"`
+	CustomerLastName            string          `json:"customer_last_name"`
+	DeliveryInfo                string          `json:"delivery_info"`
+	ExtraAttributes             string          `json:"extra_attributes"`
+	GiftMessage                 string          `json:"gift_message"`
+	GiftOption                  bool            `json:"gift_option"`
+	ItemsCount                  int             `json:"items_count"`
+	NationalRegistrationNumber  string          `json:"national_registration_number"`
+	OrderID                     int64           `json:"order_id"`
+	OrderNumber                 int64           `json:"order_number"`
+	PaymentMethod               string          `json:"payment_method"`
+	Price                       string          `json:"price"`
+	PromisedShippingTimes       string          `json:"promised_shipping_times"`
+	Remarks                     string          `json:"remarks"`
+	ShippingFee                 int             `json:"shipping_fee"`
+	ShippingFeeDiscountPlatform int             `json:"shipping_fee_discount_platform"`
+	ShippingFeeDiscountSeller   int             `json:"shipping_fee_discount_seller"`
+	ShippingFeeOriginal         int             `json:"shipping_fee_original"`
+	Statuses                    []string        `json:"statuses"`
+	TaxCode                     string          `json:"tax_code"`
+	UpdatedAt                   string          `json:"updated_at"`
+	Voucher                     int             `json:"voucher"`
+	VoucherCode                 string          `json:"voucher_code"`
+	VoucherPlatform             int             `json:"voucher_platform"`
+	VoucherSeller               int             `json:"voucher_seller"`
+	WarehouseCode               string          `json:"warehouse_code"`
+}
+
+type AddressBilling struct {
+	Address1  string `json:"address1"`
+	Address2  string `json:"address2"`
+	Address3  string `json:"address3"`
+	Address4  string `json:"address4"`
+	Address5  string `json:"address5"`
+	City      string `json:"city"`
+	Country   string `json:"country"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Phone     string `json:"phone"`
+	Phone2    string `json:"phone2"`
+	PostCode  string `json:"post_code"`
+}
+
+type AddressShipping struct {
+	Address1  string `json:"address1"`
+	Address2  string `json:"address2"`
+	Address3  string `json:"address3"`
+	Address4  string `json:"address4"`
+	Address5  string `json:"address5"`
+	City      string `json:"city"`
+	Country   string `json:"country"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Phone     string `json:"phone"`
+	Phone2    string `json:"phone2"`
+	PostCode  string `json:"post_code"`
+}
+
+// GetOrders is a method on the OrderService struct. Use this API to get list of orders.
+// The function returns a pointer to an GetOrdersResponse struct containing the server's response, and an error, if there is one.
+func (o *OrderService) GetOrders(ctx context.Context, opts *GetOrdersParam) (res *GetOrdersResponse, err error) {
+	u, err := addOptions(ApiNames["GetOrders"], opts)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := o.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := o.client.Do(ctx, req, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonData, err := json.Marshal(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	json.Unmarshal([]byte(jsonData), &res)
+
+	return res, nil
+}

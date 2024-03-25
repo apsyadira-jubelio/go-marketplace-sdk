@@ -53,6 +53,7 @@ func (s *AuthServiceOp) GetAccessToken(appKey, appSecret, code, grantType string
 }
 
 type GetShopsResponse struct {
+	BaseResponse
 	Data DataShops `json:"data"`
 }
 type Shops struct {

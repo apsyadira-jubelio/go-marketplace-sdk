@@ -8,6 +8,7 @@ type AuthService interface {
 	GetAuthURL(serviceID string) (string, error)
 	GetOldAuthURL(appKey, state string) (string, error)
 	GetAccessToken(appKey, appSecret, code, grantType string) (*GetAccessTokenResponse, error)
+	GetAuthorizationShop(version string) (*GetShopsResponse, error)
 }
 
 const (

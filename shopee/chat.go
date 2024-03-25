@@ -219,6 +219,6 @@ func (s *ChatServiceOp) GetOneConversation(shopID uint64, token string, params G
 	path := "/sellerchat/get_one_conversation"
 
 	resp := new(GetDetailConversation)
-	err := s.client.WithShop(uint64(shopID), token).Get(path, resp, nil)
+	err := s.client.WithShop(uint64(shopID), token).Get(path, resp, params)
 	return resp, err
 }

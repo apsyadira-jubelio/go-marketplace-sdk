@@ -16,7 +16,10 @@ import (
 )
 
 const (
-	UserAgent = "go-marketplace-sdk/1.0.0"
+	UserAgent     = "go-marketplace-sdk/1.0.0"
+	OpenAPIURL    = "https://open-api.tiktokglobalshop.com"
+	AuthBaseURL   = "https://services.tiktokshop.com"
+	LegacyAuthURL = "https://auth.tiktok-shops.com"
 )
 
 type AppConfig struct {
@@ -85,7 +88,7 @@ func (c *TiktokClient) makeSignature(req *http.Request) string {
 
 	// only for not auth API
 	signResult := c.CalSignAndGenerateSignature(req, c.appConfig.AppSecret)
-	if u.Host != AuthBaseURL && u.Host != OldAuthBaseURL {
+	if u.Host != AuthBaseURL && u.Host != LegacyAuthURL {
 		query.Add("app_key", c.appConfig.AppKey)
 		// query.Add("app_secret", c.appConfig.AppSecret)
 		query.Add("timestamp", fmt.Sprintf("%v", ts))

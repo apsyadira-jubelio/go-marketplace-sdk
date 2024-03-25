@@ -2,19 +2,27 @@ package tiktok
 
 import (
 	"fmt"
+	"net/url"
 )
 
 type AuthService interface {
 	GetAuthURL(serviceID string) (string, error)
-	GetOldAuthURL(appKey, state string) (string, error)
-	GetAccessToken(appKey, appSecret, code, grantType string) (*GetAccessTokenResponse, error)
+	GetLegacyAuthURL(appKey, state string) (string, error)
+	GetAccessToken(params GetAccessTokenParams) (*GetAccessTokenResponse, error)
 	GetAuthorizationShop(version string) (*GetShopsResponse, error)
 }
 
-const (
-	AuthBaseURL    = "https://services.tiktokshop.com/open/authorize"
-	OldAuthBaseURL = "https://auth.tiktok-shops.com/oauth/authorize"
-)
+// const (
+// 	AuthBaseURL   = "https://services.tiktokshop.com/open/authorize"
+// 	LegacyAuthURL = "https://auth.tiktok-shops.com/oauth/authorize"
+// )
+
+type GetAccessTokenParams struct {
+	AppKey    string `url:"app_key"`
+	AppSecret string `url:"app_secret"`
+	Code      string `url:"auth_code"`
+	GrantType string `url:"grant_type"`
+}
 
 type GetAccessTokenResponse struct {
 	BaseResponse
@@ -37,19 +45,22 @@ type AuthServiceOp struct {
 }
 
 func (s *AuthServiceOp) GetAuthURL(serviceID string) (string, error) {
-	aurl := fmt.Sprintf("%s?service_id=%s", AuthBaseURL, serviceID)
+	aurl := fmt.Sprintf("%s/open/authorize?service_id=%s", AuthBaseURL, serviceID)
 	return aurl, nil
 }
 
-func (s *AuthServiceOp) GetOldAuthURL(appKey, state string) (string, error) {
-	aurl := fmt.Sprintf("%s?app_key=%s&state=%s", OldAuthBaseURL, appKey, state)
+func (s *AuthServiceOp) GetLegacyAuthURL(appKey, state string) (string, error) {
+	aurl := fmt.Sprintf("%s/oauth/authorize?app_key=%s&state=%s", LegacyAuthURL, appKey, state)
 	return aurl, nil
 }
 
-func (s *AuthServiceOp) GetAccessToken(appKey, appSecret, code, grantType string) (*GetAccessTokenResponse, error) {
-	path := fmt.Sprintf("/api/v2/token/get?app_key%s&app_secret=%s&auth_code=%s&grant_type=%s", appKey, appSecret, code, grantType)
+func (s *AuthServiceOp) GetAccessToken(params GetAccessTokenParams) (*GetAccessTokenResponse, error) {
+	path := "/api/v2/token/get"
+
 	resp := new(GetAccessTokenResponse)
-	err := s.client.Get(path, nil, resp)
+	authURL, _ := url.Parse(LegacyAuthURL)
+	s.client.baseURL = authURL
+	err := s.client.Get(path, resp, params)
 	return resp, err
 }
 
@@ -73,6 +84,6 @@ func (s *AuthServiceOp) GetAuthorizationShop(version string) (*GetShopsResponse,
 	// host https://open-api.tiktokglobalshop.com, automatically add app_key, sign, and timestamp in query param. Check func makeSignature
 	path := fmt.Sprintf("/authorization/%s/shops", version)
 	resp := new(GetShopsResponse)
-	err := s.client.Get(path, nil, resp)
+	err := s.client.Get(path, resp, nil)
 	return resp, err
 }

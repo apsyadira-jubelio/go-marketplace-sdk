@@ -15,14 +15,16 @@ type BaseResponse struct {
 	RequestID string `json:"request_id"`
 	Error     string `json:"error"`
 	Message   string `json:"message"`
-	Code      string `json:"code"`
+	Code      int    `json:"code"`
 }
 
 // A general response error
 type ResponseError struct {
-	Status  int
-	Message string
-	Errors  []string
+	Message  string   `json:"message"`
+	Status   int      `json:"status"`
+	RequstID string   `json:"request_id"`
+	Code     int      `json:"code"`
+	Errors   []string `json:"errors,omitempty"`
 }
 
 // GetStatus returns http  response status
@@ -42,7 +44,12 @@ func (e ResponseError) GetErrors() []string {
 
 func (e ResponseError) Error() string {
 	if e.Message != "" {
-		return e.Message
+		errorBytes, err := json.Marshal(e)
+		if err != nil {
+			return fmt.Sprintf("unknown error: %s", err)
+		}
+
+		return string(errorBytes)
 	}
 
 	sort.Strings(e.Errors)
@@ -75,10 +82,7 @@ type RateLimitError struct {
 }
 
 func CheckResponseError(r *http.Response) error {
-	tiktokError := struct {
-		Code    int    `json:"code"`
-		Message string `json:"message"`
-	}{}
+	tiktokError := ResponseError{}
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -106,8 +110,10 @@ func CheckResponseError(r *http.Response) error {
 	}
 
 	responseError := ResponseError{
-		Status:  r.StatusCode,
-		Message: fmt.Sprintf("tiktok-%d [%s]", tiktokError.Code, tiktokError.Message),
+		Status:   r.StatusCode,
+		Message:  tiktokError.Message,
+		RequstID: tiktokError.RequstID,
+		Code:     tiktokError.Code,
 	}
 
 	return wrapSpecificError(r, responseError)

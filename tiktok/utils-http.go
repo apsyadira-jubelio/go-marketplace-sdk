@@ -8,7 +8,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -146,8 +145,6 @@ func (c *TiktokClient) NewfileUploadRequest(relPath, paramName, filename string)
 		// make sure it's a relative path
 		relPath = strings.TrimLeft(relPath, "/")
 	}
-
-	relPath = path.Join("api/v2", relPath)
 
 	rel, err := url.Parse(relPath)
 	if err != nil {

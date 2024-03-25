@@ -1,0 +1,15 @@
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "access_token": "ROW_-9D27wAAAABftY_-lBYbKUNezeTwBEzV7T-uEdQR3qD7lu7tdl0YuX1OsYoBtH2L1nlzgH-m4OYORtNg3YKqUPBdiuleV17Tnndh8v9jpeM4Zk-pinJ7V53fA7DWDVJHoD2f-2YqfN63WY6BhtuaNrlhddEr6ZVZr3osL1nQogHjLgU6Hfs4CA",
+    "access_token_expire_in": 1711993279,
+    "refresh_token": "3sadasdasdasd",
+    "refresh_token_expire_in": 4833156958,
+    "open_id": "u2BtRwAAAAAxUHI6EaA-AkLD7BWXz6PBoOdTJ6j0TWp2l3Vp9STFnQ",
+    "seller_name": "Test 123",
+    "seller_base_region": "ID",
+    "user_type": 0
+  },
+  "request_id": "20240325174118B2FAA4AE3915B5078D3B"
+}

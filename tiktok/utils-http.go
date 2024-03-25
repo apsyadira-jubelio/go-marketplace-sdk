@@ -46,7 +46,7 @@ func (c *TiktokClient) createAndDoGetHeaders(method, relPath string, data, optio
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("path in createAndDoGetHeaders:%s\n", relPath)
+	// log.Printf("path in createAndDoGetHeaders:%s\n", relPath)
 	return c.doGetHeaders(req, resource, false)
 }
 

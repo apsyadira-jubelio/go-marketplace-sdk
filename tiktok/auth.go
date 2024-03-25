@@ -47,7 +47,7 @@ func (s *AuthServiceOp) GetOldAuthURL(appKey, state string) (string, error) {
 }
 
 func (s *AuthServiceOp) GetAccessToken(appKey, appSecret, code, grantType string) (*GetAccessTokenResponse, error) {
-	path := fmt.Sprintf("/authorization/202309/shop?app_key%s&app_secret=%s&auth_code=%s&grant_type=%s", appKey, appSecret, code, grantType)
+	path := fmt.Sprintf("/api/v2/token/get?app_key%s&app_secret=%s&auth_code=%s&grant_type=%s", appKey, appSecret, code, grantType)
 	resp := new(GetAccessTokenResponse)
 	err := s.client.Get(path, nil, resp)
 	return resp, err

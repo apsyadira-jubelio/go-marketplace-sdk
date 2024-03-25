@@ -26,7 +26,7 @@ func main() {
 	spew.Dump(appConfig)
 	spew.Dump(url)
 
-	resp, err := client.Auth.GetAccessToken("12345", "authorized_code")
+	resp, err := client.Auth.GetAccessToken(appConfig.AppKey, appConfig.AppSecret, "12345", "authorized_code")
 	if err != nil {
 		log.Fatal(err)
 	}

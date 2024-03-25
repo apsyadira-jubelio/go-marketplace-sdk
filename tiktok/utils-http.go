@@ -42,8 +42,6 @@ func (c *TiktokClient) createAndDoGetHeaders(method, relPath string, data, optio
 		relPath = strings.TrimLeft(relPath, "/")
 	}
 
-	relPath = path.Join("api/v2", relPath)
-
 	req, err := c.NewRequest(method, relPath, data, options, headers)
 	if err != nil {
 		return nil, err

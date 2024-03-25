@@ -7,7 +7,7 @@ import (
 type AuthService interface {
 	GetAuthURL(serviceID string) (string, error)
 	GetOldAuthURL(appKey, state string) (string, error)
-	GetAccessToken(code, grantType string) (*GetAccessTokenResponse, error)
+	GetAccessToken(appKey, appSecret, code, grantType string) (*GetAccessTokenResponse, error)
 }
 
 const (
@@ -45,8 +45,8 @@ func (s *AuthServiceOp) GetOldAuthURL(appKey, state string) (string, error) {
 	return aurl, nil
 }
 
-func (s *AuthServiceOp) GetAccessToken(code, grantType string) (*GetAccessTokenResponse, error) {
-	path := fmt.Sprintf("/auth/token/get?app_secret=%s&auth_code=%s&grant_type=%s", s.client.appConfig.AppSecret, code, grantType)
+func (s *AuthServiceOp) GetAccessToken(appKey, appSecret, code, grantType string) (*GetAccessTokenResponse, error) {
+	path := fmt.Sprintf("/auth/token/get?app_key%s&app_secret=%s&auth_code=%s&grant_type=%s", appKey, appSecret, code, grantType)
 	resp := new(GetAccessTokenResponse)
 	err := s.client.Get(path, nil, resp)
 	return resp, err

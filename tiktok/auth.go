@@ -46,8 +46,31 @@ func (s *AuthServiceOp) GetOldAuthURL(appKey, state string) (string, error) {
 }
 
 func (s *AuthServiceOp) GetAccessToken(appKey, appSecret, code, grantType string) (*GetAccessTokenResponse, error) {
-	path := fmt.Sprintf("/api/v2/auth/token/get?app_key%s&app_secret=%s&auth_code=%s&grant_type=%s", appKey, appSecret, code, grantType)
+	path := fmt.Sprintf("/authorization/202309/shop?app_key%s&app_secret=%s&auth_code=%s&grant_type=%s", appKey, appSecret, code, grantType)
 	resp := new(GetAccessTokenResponse)
+	err := s.client.Get(path, nil, resp)
+	return resp, err
+}
+
+type GetShopsResponse struct {
+	Data DataShops `json:"data"`
+}
+type Shops struct {
+	Cipher     string `json:"cipher"`
+	Code       string `json:"code"`
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Region     string `json:"region"`
+	SellerType string `json:"seller_type"`
+}
+type DataShops struct {
+	Shops []Shops `json:"shops"`
+}
+
+func (s *AuthServiceOp) GetAuthorizationShop(version string) (*GetShopsResponse, error) {
+	// host https://open-api.tiktokglobalshop.com, automatically add app_key, sign, and timestamp in query param. Check func makeSignature
+	path := fmt.Sprintf("/authorization/%s/shops", version)
+	resp := new(GetShopsResponse)
 	err := s.client.Get(path, nil, resp)
 	return resp, err
 }

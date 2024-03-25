@@ -84,14 +84,14 @@ func (c *TiktokClient) makeSignature(req *http.Request) string {
 	}
 
 	// only for not auth API
+	signResult := c.CalSignAndGenerateSignature(req, c.appConfig.AppSecret)
 	if u.Host != AuthBaseURL && u.Host != OldAuthBaseURL {
 		query.Add("app_key", c.appConfig.AppKey)
-		query.Add("app_secret", c.appConfig.AppSecret)
+		// query.Add("app_secret", c.appConfig.AppSecret)
+		query.Add("timestamp", fmt.Sprintf("%v", ts))
+		query.Add("sign", signResult)
 	}
 
-	query.Add("timestamp", fmt.Sprintf("%v", ts))
-	signResult := c.CalSignAndGenerateSignature(req, c.appConfig.AppSecret)
-	query.Add("sign", signResult)
 	u.RawQuery = query.Encode()
 	req.URL = u
 

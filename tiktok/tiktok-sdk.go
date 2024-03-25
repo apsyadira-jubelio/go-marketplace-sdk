@@ -34,6 +34,7 @@ type TiktokClient struct {
 	attempts int
 
 	ShopChiper string
+	Version    string
 	// AccessToken string
 
 	Auth AuthService
@@ -64,8 +65,9 @@ func NewClient(app AppConfig, opts ...Option) *TiktokClient {
 	return c
 }
 
-func (c *TiktokClient) WithShopChiper(chiper string) *TiktokClient {
+func (c *TiktokClient) WithShopChiper(chiper, version string) *TiktokClient {
 	c.ShopChiper = chiper
+	c.Version = version
 	return c
 }
 
@@ -79,7 +81,7 @@ func (c *TiktokClient) makeSignature(req *http.Request) (string, int64) {
 
 	query := u.Query()
 	if c.ShopChiper != "" {
-		baseStr = fmt.Sprintf("%s%d%s", path, ts, c.ShopChiper)
+		baseStr = fmt.Sprintf("%s/%s", path, c.Version)
 		query.Add("shop_chiper", fmt.Sprintf("%v", c.ShopChiper))
 	} else {
 		baseStr = fmt.Sprintf("%s%s%d", c.appConfig.AppKey, path, ts)

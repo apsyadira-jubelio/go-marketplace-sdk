@@ -41,8 +41,9 @@ type TiktokClient struct {
 	retries  int
 	attempts int
 
-	ShopChiper string
-	// AccessToken string
+	ShopChiper  string
+	AccessToken string
+	ShopID      string
 
 	Auth AuthService
 	Util UtilService
@@ -77,6 +78,24 @@ func (c *TiktokClient) WithShopChiper(chiper, version string) *TiktokClient {
 	return c
 }
 
+func (c *TiktokClient) WithAccessToken(accessToken string) *TiktokClient {
+	if accessToken == "" {
+		return c
+	}
+
+	c.AccessToken = accessToken
+	return c
+}
+
+func (c *TiktokClient) WithShopID(shopID string) *TiktokClient {
+	if shopID == "" {
+		return c
+	}
+
+	c.ShopID = shopID
+	return c
+}
+
 func (c *TiktokClient) makeSignature(req *http.Request) string {
 	ts := time.Now().Unix()
 	u := req.URL
@@ -86,14 +105,23 @@ func (c *TiktokClient) makeSignature(req *http.Request) string {
 		query.Add("shop_chiper", fmt.Sprintf("%v", c.ShopChiper))
 	}
 
+	if c.ShopID != "" {
+		query.Add("shop_id", fmt.Sprintf("%v", c.ShopID))
+	}
+
+	if c.AccessToken != "" {
+		query.Add("access_token", fmt.Sprintf("%v", c.AccessToken))
+	}
+
+	query.Add("app_key", c.appConfig.AppKey)
+	query.Add("timestamp", fmt.Sprintf("%v", ts))
+
+	u.RawQuery = query.Encode()
+	req.URL = u
 	// only for not auth API
 	signResult := c.CalSignAndGenerateSignature(req, c.appConfig.AppSecret)
-	if u.Host != AuthBaseURL && u.Host != LegacyAuthURL {
-		query.Add("app_key", c.appConfig.AppKey)
-		// query.Add("app_secret", c.appConfig.AppSecret)
-		query.Add("timestamp", fmt.Sprintf("%v", ts))
-		query.Add("sign", signResult)
-	}
+
+	query.Add("sign", signResult)
 
 	u.RawQuery = query.Encode()
 	req.URL = u

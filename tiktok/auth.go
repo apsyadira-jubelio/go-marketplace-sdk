@@ -9,7 +9,7 @@ type AuthService interface {
 	GetAuthURL(serviceID string) (string, error)
 	GetLegacyAuthURL(appKey, state string) (string, error)
 	GetAccessToken(params GetAccessTokenParams) (*GetAccessTokenResponse, error)
-	GetAuthorizationShop(version string) (*GetShopsResponse, error)
+	GetAuthorizationShop(accessToken string, shopID string) (*GetShopsResponse, error)
 }
 
 // const (
@@ -80,10 +80,10 @@ type DataShops struct {
 	Shops []Shops `json:"shops"`
 }
 
-func (s *AuthServiceOp) GetAuthorizationShop(version string) (*GetShopsResponse, error) {
+func (s *AuthServiceOp) GetAuthorizationShop(accessToken string, shopID string) (*GetShopsResponse, error) {
 	// host https://open-api.tiktokglobalshop.com, automatically add app_key, sign, and timestamp in query param. Check func makeSignature
-	path := fmt.Sprintf("/authorization/%s/shops", version)
+	path := fmt.Sprintf("/authorization/%s/shops", s.client.appConfig.Version)
 	resp := new(GetShopsResponse)
-	err := s.client.Get(path, resp, nil)
+	err := s.client.WithShopID(shopID).WithAccessToken(accessToken).Get(path, resp, nil)
 	return resp, err
 }

@@ -17,7 +17,7 @@ func main() {
 	appConfig := tiktok.AppConfig{
 		AppKey:    os.Getenv("TIKTOK_APP_KEY"),
 		AppSecret: os.Getenv("TIKTOK_APP_SECRET"),
-		APIURL:    "https://auth.tiktok-shops.com",
+		APIURL:    tiktok.OpenAPIURL,
 		Version:   "202309",
 	}
 
@@ -42,17 +42,11 @@ func main() {
 	}
 
 	log.Println(url)
-	qs := tiktok.GetAccessTokenParams{
-		Code:      "123",
-		AppKey:    appConfig.AppKey,
-		AppSecret: appConfig.AppSecret,
-		GrantType: "authorized_code",
-	}
-
-	resp, err := client.Auth.GetAccessToken(qs)
+	resp, err := client.Auth.GetAuthorizationShop("ROW_Tm5R_QAAAABftY_-lBYbKUNezeTwBEzVkxf1Ds1UuyUNmR0NVerLbyWyVo1aqiEvJzoo7CDU6icxj_y-36qDAg3oZ01l2KtMXD0cOqnJdu93Q_WiBUwjt1NYYaw0ptvTivsbZ2gNw5Xk2qyyEcnCjX2nVnO2wfrbVgTUFco2Y9XYdcjEwuMkzw", "")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	spew.Dump(resp)
+
 }

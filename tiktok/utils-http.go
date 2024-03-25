@@ -45,6 +45,7 @@ func (c *TiktokClient) createAndDoGetHeaders(method, relPath string, data, optio
 	if err != nil {
 		return nil, err
 	}
+
 	// log.Printf("path in createAndDoGetHeaders:%s\n", relPath)
 	return c.doGetHeaders(req, resource, false)
 }
@@ -118,6 +119,10 @@ func (c *TiktokClient) NewRequest(method, relPath string, body, options, headers
 
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
+
+	if c.AccessToken != "" {
+		req.Header.Add("x-tts-access-token", c.AccessToken)
+	}
 
 	c.makeSignature(req)
 

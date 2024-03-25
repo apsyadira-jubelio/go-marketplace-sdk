@@ -9,10 +9,10 @@ type ChatService interface {
 }
 
 type GetMessageParamsRequest struct {
-	Offset         string  `url:"offset"`
-	PageSize       int     `url:"page_size"`
-	ConversationID int64   `url:"conversation_id"`
-	MessageIdList  []int64 `url:"message_id_list"`
+	Offset         string  `url:"offset,omitempty"`
+	PageSize       int     `url:"page_size,omitempty"`
+	ConversationID int64   `url:"conversation_id,omitempty"`
+	MessageIdList  []int64 `url:"message_id_list,ommitempty"`
 }
 
 type GetMessageResponse struct {
@@ -73,12 +73,8 @@ type ChatServiceOp struct {
 func (s *ChatServiceOp) GetMessage(shopID uint64, token string, params GetMessageParamsRequest) (*GetMessageResponse, error) {
 	path := "/sellerchat/get_message"
 
-	opt := GetMessageParamsRequest{
-		PageSize: params.PageSize,
-	}
-
 	resp := new(GetMessageResponse)
-	err := s.client.WithShop(uint64(shopID), token).Get(path, resp, opt)
+	err := s.client.WithShop(uint64(shopID), token).Get(path, resp, params)
 	return resp, err
 }
 

@@ -25,6 +25,18 @@ func (c *TiktokClient) CreateAndDo(method, relPath string, data, options, header
 	defer func() {
 		// clear for next call
 		c.ShopChiper = ""
+		c.ShopID = ""
+		c.AccessToken = ""
+
+		legacyAuthURL, _ := url.Parse(LegacyAuthURL)
+		authURL, _ := url.Parse(AuthBaseURL)
+
+		// clear base url for next call if it from legacy auth or auth url
+		if c.baseURL == legacyAuthURL || c.baseURL == authURL {
+			OpenAPIURL, _ := url.Parse(OpenAPIURL)
+			c.baseURL = OpenAPIURL
+		}
+
 	}()
 
 	_, err := c.createAndDoGetHeaders(method, relPath, data, options, headers, resource)

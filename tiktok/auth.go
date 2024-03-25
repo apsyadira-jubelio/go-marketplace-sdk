@@ -60,7 +60,9 @@ func (s *AuthServiceOp) GetAccessToken(params GetAccessTokenParams) (*GetAccessT
 	resp := new(GetAccessTokenResponse)
 	authURL, _ := url.Parse(LegacyAuthURL)
 	s.client.baseURL = authURL
+
 	err := s.client.Get(path, resp, params)
+
 	return resp, err
 }
 

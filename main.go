@@ -42,7 +42,7 @@ func main() {
 	}
 
 	log.Println(url)
-	resp, err := client.Auth.GetAuthorizationShop("ROW_Tm5R_QAAAABftY_-lBYbKUNezeTwBEzVkxf1Ds1UuyUNmR0NVerLbyWyVo1aqiEvJzoo7CDU6icxj_y-36qDAg3oZ01l2KtMXD0cOqnJdu93Q_WiBUwjt1NYYaw0ptvTivsbZ2gNw5Xk2qyyEcnCjX2nVnO2wfrbVgTUFco2Y9XYdcjEwuMkzw", "")
+	resp, err := client.Auth.GetAuthorizationShop("ROW_tZqEowAAAABftY_-lBYbKUNezeTwBEzV7T-uEdQR3qD7lu7tdl0YuX1OsYoBtH2L1nlzgH-m4OYORtNg3YKqUPBdiuleV17Tnndh8v9jpeM4Zk-pinJ7V19-G2fmQSgDu49cpezv52oc_aTopWJ-yClT2KmEKMZ7Mc-oLfpM4SizMW3CnXKG2g", "")
 	if err != nil {
 		log.Fatal(err.Error())
 	}

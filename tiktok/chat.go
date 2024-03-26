@@ -7,7 +7,8 @@ import (
 type ChatService interface {
 	GetConversationMessages(params GetConversationMessagesParam, convesationID, shopChiper, shopID, accessToken string) (*GetConversationMessagesResponse, error)
 	GetConversations(params GetConversationsParam, shopChiper, shopID, accessToken string) (*GetConversationsResponse, error)
-	SendMessageToConversationID(body SendMessageToConversationIDRequest, conversationID, shopChiper, accessToken string) (*SendMessageToConversationIDResponse, error)
+	SendMessageToConversationID(body SendMessageToConversationIDReq, conversationID, shopChiper, accessToken string) (*SendMessageToConversationIDResp, error)
+	ReadMessageConversationID(conversationID, shopChiper, accessToken string) (*ReadMessageConversationIDResp, error)
 }
 
 type ChatServiceOp struct {
@@ -107,12 +108,13 @@ const (
 	TypeMessageOrder   = "ORDER_CARD"
 )
 
-type SendMessageToConversationIDRequest struct {
+type SendMessageToConversationIDReq struct {
 	TypeMesage string `json:"type"`
 	Content    string `json:"content"` // json stringfy
 }
 
-type SendMessageToConversationIDResponse struct {
+type SendMessageToConversationIDResp struct {
+	BaseResponse
 	Data *DataSendMsgResponse `json:"data"`
 }
 
@@ -120,9 +122,21 @@ type DataSendMsgResponse struct {
 	MessageID string `json:"message_id"`
 }
 
-func (s *ChatServiceOp) SendMessageToConversationID(body SendMessageToConversationIDRequest, conversationID, shopChiper, accessToken string) (*SendMessageToConversationIDResponse, error) {
+func (s *ChatServiceOp) SendMessageToConversationID(body SendMessageToConversationIDReq, conversationID, shopChiper, accessToken string) (*SendMessageToConversationIDResp, error) {
 	path := fmt.Sprintf("/customer_service/%s/conversations/%s/messages", s.client.appConfig.Version, conversationID)
-	resp := new(SendMessageToConversationIDResponse)
+	resp := new(SendMessageToConversationIDResp)
 	err := s.client.WithShopCipher(shopChiper).WithAccessToken(accessToken).Post(path, body, resp)
+	return resp, err
+}
+
+type ReadMessageConversationIDResp struct {
+	BaseResponse
+	Data interface{} `json:"data"`
+}
+
+func (s *ChatServiceOp) ReadMessageConversationID(conversationID, shopChiper, accessToken string) (*ReadMessageConversationIDResp, error) {
+	path := fmt.Sprintf("/customer_service/%s/conversations/%s/messages/read", s.client.appConfig.Version, conversationID)
+	resp := new(ReadMessageConversationIDResp)
+	err := s.client.WithShopCipher(shopChiper).WithAccessToken(accessToken).Post(path, nil, resp)
 	return resp, err
 }

@@ -54,7 +54,7 @@ func main() {
 	}
 	spew.Dump(respAccessToken)
 
-	respShop, err := client.Auth.GetAuthorizationShop("-1PQBaPA", "")
+	respShop, err := client.Auth.GetAuthorizationShop("ROW_", "")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -80,7 +80,7 @@ func main() {
 	spew.Dump(respRefreshToken)
 
 	client.ShopCipher = shopCipher
-	accessToken := "-1PQBaPA"
+	accessToken := "ROW_"
 	convesationParam := tiktok.GetConversationsParam{
 		PageSize: 2,
 	}
@@ -93,7 +93,7 @@ func main() {
 
 	respConvMsg, err := client.Chat.GetConversationMessages(tiktok.GetConversationMessagesParam{
 		PageSize: 3,
-	}, "732", shopCipher, shopID, accessToken)
+	}, "7777", shopCipher, shopID, accessToken)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -105,13 +105,20 @@ func main() {
 	}
 
 	bytesContent, _ := json.Marshal(contentMsg)
-	respSend, err := client.Chat.SendMessageToConversationID(tiktok.SendMessageToConversationIDRequest{
-		TypeMesage: "TEXT",
+	respSend, err := client.Chat.SendMessageToConversationID(tiktok.SendMessageToConversationIDReq{
+		TypeMesage: tiktok.TypeMessageText,
 		Content:    string(bytesContent),
-	}, "735", shopCipher, accessToken)
+	}, "7777", shopCipher, accessToken)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	spew.Dump(respSend)
+
+	respRead, err := client.Chat.ReadMessageConversationID("7777", shopCipher, accessToken)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	spew.Dump(respRead)
 }

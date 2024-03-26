@@ -56,13 +56,6 @@ func NewClient(app AppConfig, opts ...Option) *TiktokClient {
 		panic(err)
 	}
 
-	// if app.AuthURL != "" {
-	// 	baseURL, err = url.Parse(app.AuthURL)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// }
-
 	c := &TiktokClient{
 		Client:    &http.Client{},
 		log:       &LeveledLogger{},
@@ -82,7 +75,7 @@ func NewClient(app AppConfig, opts ...Option) *TiktokClient {
 	return c
 }
 
-func (c *TiktokClient) WithShopChiper(cipher, version string) *TiktokClient {
+func (c *TiktokClient) WithShopCipher(cipher string) *TiktokClient {
 	c.ShopCipher = cipher
 	return c
 }

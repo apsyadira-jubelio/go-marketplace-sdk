@@ -42,11 +42,61 @@ func main() {
 	}
 
 	log.Println(url)
-	resp, err := client.Auth.GetAuthorizationShop("ROW_tZqEowAAAABftY_-lBYbKUNezeTwBEzV7T-uEdQR3qD7lu7tdl0YuX1OsYoBtH2L1nlzgH-m4OYORtNg3YKqUPBdiuleV17Tnndh8v9jpeM4Zk-pinJ7V19-G2fmQSgDu49cpezv52oc_aTopWJ-yClT2KmEKMZ7Mc-oLfpM4SizMW3CnXKG2g", "")
+
+	respAccessToken, err := client.Auth.GetAccessToken(tiktok.GetAccessTokenParams{
+		AppKey:    appConfig.AppKey,
+		AppSecret: appConfig.AppSecret,
+		Code:      "123",
+		GrantType: "authorized_code",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	spew.Dump(respAccessToken)
+
+	respShop, err := client.Auth.GetAuthorizationShop("", "")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	spew.Dump(respShop)
+	shopCipher := ""
+	shopID := ""
+	for _, dataInShop := range respShop.Data.Shops {
+		if dataInShop.Name == "JBBeauty" {
+			shopCipher = dataInShop.Cipher
+			shopID = dataInShop.ID
+			break
+		}
+	}
+	respRefreshToken, err := client.Auth.GetRefreshToken(tiktok.GetRefreshTokenParams{
+		AppKey:       appConfig.AppKey,
+		AppSecret:    appConfig.AppSecret,
+		RefreshToken: respAccessToken.Data.RefreshToken,
+		GrantType:    "refresh_token",
+	})
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	spew.Dump(respRefreshToken)
+
+	client.ShopCipher = shopCipher
+	accessToken := "ROW_vYcihwAAAABftY_"
+	convesationParam := tiktok.GetConversationsParam{
+		PageSize: 2,
+	}
+	respConversations, err := client.Chat.GetConversations(convesationParam, shopCipher, shopID, accessToken)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	spew.Dump(resp)
+	spew.Dump(respConversations)
 
+	respConvMsg, err := client.Chat.GetConversationMessages(tiktok.GetConversationMessagesParam{
+		PageSize: 3,
+	}, "7320258856670609669", shopCipher, shopID, accessToken)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	spew.Dump(respConvMsg)
 }

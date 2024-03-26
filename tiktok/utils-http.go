@@ -24,7 +24,7 @@ import (
 func (c *TiktokClient) CreateAndDo(method, relPath string, data, options, headers, resource interface{}) error {
 	defer func() {
 		// clear for next call
-		c.ShopChiper = ""
+		c.ShopCipher = ""
 		c.ShopID = ""
 		c.AccessToken = ""
 

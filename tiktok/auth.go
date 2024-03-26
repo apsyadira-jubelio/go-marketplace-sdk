@@ -2,7 +2,6 @@ package tiktok
 
 import (
 	"fmt"
-	"net/url"
 )
 
 type AuthService interface {
@@ -10,6 +9,7 @@ type AuthService interface {
 	GetLegacyAuthURL(appKey, state string) (string, error)
 	GetAccessToken(params GetAccessTokenParams) (*GetAccessTokenResponse, error)
 	GetAuthorizationShop(accessToken string, shopID string) (*GetShopsResponse, error)
+	GetRefreshToken(params GetRefreshTokenParams) (*GetRefreshTokenResponse, error)
 }
 
 // const (
@@ -55,14 +55,9 @@ func (s *AuthServiceOp) GetLegacyAuthURL(appKey, state string) (string, error) {
 }
 
 func (s *AuthServiceOp) GetAccessToken(params GetAccessTokenParams) (*GetAccessTokenResponse, error) {
-	path := "/api/v2/token/get"
-
+	path := fmt.Sprintf("%s/api/v2/token/get", LegacyAuthURL)
 	resp := new(GetAccessTokenResponse)
-	authURL, _ := url.Parse(LegacyAuthURL)
-	s.client.baseURL = authURL
-
 	err := s.client.Get(path, resp, params)
-
 	return resp, err
 }
 
@@ -87,5 +82,24 @@ func (s *AuthServiceOp) GetAuthorizationShop(accessToken string, shopID string) 
 	path := fmt.Sprintf("/authorization/%s/shops", s.client.appConfig.Version)
 	resp := new(GetShopsResponse)
 	err := s.client.WithShopID(shopID).WithAccessToken(accessToken).Get(path, resp, nil)
+	return resp, err
+}
+
+type GetRefreshTokenParams struct {
+	AppKey       string `url:"app_key"`
+	AppSecret    string `url:"app_secret"`
+	RefreshToken string `url:"refresh_token"`
+	GrantType    string `url:"grant_type"`
+}
+
+type GetRefreshTokenResponse struct {
+	BaseResponse
+	Data DataAccessToken `json:"data"`
+}
+
+func (s *AuthServiceOp) GetRefreshToken(params GetRefreshTokenParams) (*GetRefreshTokenResponse, error) {
+	path := fmt.Sprintf("%s/api/v2/token/refresh", LegacyAuthURL)
+	resp := new(GetRefreshTokenResponse)
+	err := s.client.Get(path, resp, params)
 	return resp, err
 }

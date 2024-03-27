@@ -201,6 +201,10 @@ func (c *TiktokClient) NewfileUploadRequest(relPath, paramName, filename string)
 		return nil, err
 	}
 
+	if c.AccessToken != "" {
+		req.Header.Add("x-tts-access-token", c.AccessToken)
+		req.URL.Query().Add("access_token", c.AccessToken)
+	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("User-Agent", UserAgent)

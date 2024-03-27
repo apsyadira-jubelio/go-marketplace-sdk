@@ -110,8 +110,8 @@ const (
 )
 
 type SendMessageToConversationIDReq struct {
-	TypeMesage string `json:"type"`
-	Content    string `json:"content"` // json stringfy
+	TypeMessage string `json:"type"`
+	Content     string `json:"content"` // json stringfy
 }
 
 type SendMessageToConversationIDResp struct {

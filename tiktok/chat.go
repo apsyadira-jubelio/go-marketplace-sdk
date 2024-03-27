@@ -10,6 +10,7 @@ type ChatService interface {
 	SendMessageToConversationID(body SendMessageToConversationIDReq, conversationID, shopChiper, accessToken string) (*SendMessageToConversationIDResp, error)
 	ReadMessageConversationID(conversationID, shopChiper, accessToken string) (*ReadMessageConversationIDResp, error)
 	CreateConversation(body CreateConversationReq, shopChiper, accessToken string) (*CreateConversationResp, error)
+	UploadBuyerMessagesImages(filename, shopChiper, accessToken string) (*UploadMessagesImagesResp, error)
 }
 
 type ChatServiceOp struct {

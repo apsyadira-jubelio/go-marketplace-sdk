@@ -106,8 +106,8 @@ func main() {
 
 	bytesContent, _ := json.Marshal(contentMsg)
 	respSend, err := client.Chat.SendMessageToConversationID(tiktok.SendMessageToConversationIDReq{
-		TypeMesage: tiktok.TypeMessageText,
-		Content:    string(bytesContent),
+		TypeMessage: tiktok.TypeMessageText,
+		Content:     string(bytesContent),
 	}, "7777", shopCipher, accessToken)
 	if err != nil {
 		log.Fatal(err)

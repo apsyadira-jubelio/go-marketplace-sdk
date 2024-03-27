@@ -157,7 +157,7 @@ type DataUploadMessagesImages struct {
 func (s *ChatServiceOp) UploadBuyerMessagesImages(filename, shopChiper, accessToken string) (*UploadMessagesImagesResp, error) {
 	path := fmt.Sprintf("/customer_service/%s/images/upload", s.client.appConfig.Version)
 	resp := new(UploadMessagesImagesResp)
-	err := s.client.WithShopCipher(shopChiper).WithAccessToken(accessToken).Upload(path, "file", filename, resp)
+	err := s.client.WithShopCipher(shopChiper).WithAccessToken(accessToken).Upload(path, "data", filename, resp)
 	return resp, err
 }
 

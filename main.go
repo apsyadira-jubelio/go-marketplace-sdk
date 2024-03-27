@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"log"
 	"os"
 
@@ -23,102 +21,19 @@ func main() {
 
 	client := tiktok.NewClient(appConfig)
 
-	state := map[string]string{
-		"companyId": "123",
-		"tenantId":  "1231212312",
-		"mp":        "Tiktok",
-		"platform":  "MACOS",
-	}
-
-	stateBytes, err := json.Marshal(state)
-	if err != nil {
-		log.Fatal(err.Error()) // log.
-	}
-
-	stateBase64 := base64.StdEncoding.EncodeToString(stateBytes)
-	url, err := client.Auth.GetLegacyAuthURL(appConfig.AppKey, stateBase64)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	log.Println(url)
-
-	respAccessToken, err := client.Auth.GetAccessToken(tiktok.GetAccessTokenParams{
-		AppKey:    appConfig.AppKey,
-		AppSecret: appConfig.AppSecret,
-		Code:      "123",
-		GrantType: "authorized_code",
+	// use with common param request to set shop_id, shop_cipher, access_token
+	// to access the OpenAPI
+	client.WithCommonParamRequest(tiktok.CommonParamRequest{
+		ShopID:      "123",
+		ShopCipher:  "123",
+		AccessToken: "123",
 	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	spew.Dump(respAccessToken)
 
-	respShop, err := client.Auth.GetAuthorizationShop("ROW_", "")
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	spew.Dump(respShop)
-	shopCipher := ""
-	shopID := ""
-	for _, dataInShop := range respShop.Data.Shops {
-		if dataInShop.Name == "JBBeauty" {
-			shopCipher = dataInShop.Cipher
-			shopID = dataInShop.ID
-			break
-		}
-	}
-	respRefreshToken, err := client.Auth.GetRefreshToken(tiktok.GetRefreshTokenParams{
-		AppKey:       appConfig.AppKey,
-		AppSecret:    appConfig.AppSecret,
-		RefreshToken: respAccessToken.Data.RefreshToken,
-		GrantType:    "refresh_token",
-	})
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	spew.Dump(respRefreshToken)
+	resp, err := client.Chat.ReadMessageConversationID("7350198843860353287")
 
-	client.ShopCipher = shopCipher
-	accessToken := "ROW_"
-	convesationParam := tiktok.GetConversationsParam{
-		PageSize: 2,
-	}
-	respConversations, err := client.Chat.GetConversations(convesationParam, shopCipher, shopID, accessToken)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	spew.Dump(respConversations)
-
-	respConvMsg, err := client.Chat.GetConversationMessages(tiktok.GetConversationMessagesParam{
-		PageSize: 3,
-	}, "7777", shopCipher, shopID, accessToken)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	spew.Dump(respConvMsg)
-
-	contentMsg := map[string]interface{}{
-		"content": "test",
-	}
-
-	bytesContent, _ := json.Marshal(contentMsg)
-	respSend, err := client.Chat.SendMessageToConversationID(tiktok.SendMessageToConversationIDReq{
-		TypeMessage: tiktok.TypeMessageText,
-		Content:     string(bytesContent),
-	}, "7777", shopCipher, accessToken)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	spew.Dump(respSend)
-
-	respRead, err := client.Chat.ReadMessageConversationID("7777", shopCipher, accessToken)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	spew.Dump(respRead)
+	spew.Dump(resp)
 }

@@ -50,6 +50,13 @@ type TiktokClient struct {
 	Chat ChatService
 }
 
+type CommonParamRequest struct {
+	AccessToken    string
+	ShopID         string
+	ShopCipher     string
+	ConversationID string
+}
+
 func NewClient(app AppConfig, opts ...Option) *TiktokClient {
 	baseURL, err := url.Parse(app.APIURL)
 	if err != nil {
@@ -70,6 +77,20 @@ func NewClient(app AppConfig, opts ...Option) *TiktokClient {
 	// apply any options
 	for _, opt := range opts {
 		opt(c)
+	}
+
+	return c
+}
+
+func (c *TiktokClient) WithCommonParamRequest(param CommonParamRequest) *TiktokClient {
+	if param.AccessToken != "" {
+		c.AccessToken = param.AccessToken
+	}
+	if param.ShopID != "" {
+		c.ShopID = param.ShopID
+	}
+	if param.ShopCipher != "" {
+		c.ShopCipher = param.ShopCipher
 	}
 
 	return c

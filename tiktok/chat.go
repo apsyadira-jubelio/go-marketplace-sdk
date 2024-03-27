@@ -5,12 +5,12 @@ import (
 )
 
 type ChatService interface {
-	GetConversationMessages(params GetConversationMessagesParam, convesationID, shopChiper, shopID, accessToken string) (*GetConversationMessagesResponse, error)
-	GetConversations(params GetConversationsParam, shopChiper, shopID, accessToken string) (*GetConversationsResponse, error)
-	SendMessageToConversationID(body SendMessageToConversationIDReq, conversationID, shopChiper, accessToken string) (*SendMessageToConversationIDResp, error)
-	ReadMessageConversationID(conversationID, shopChiper, accessToken string) (*ReadMessageConversationIDResp, error)
-	CreateConversation(body CreateConversationReq, shopChiper, accessToken string) (*CreateConversationResp, error)
-	UploadBuyerMessagesImages(filename, shopChiper, accessToken string) (*UploadMessagesImagesResp, error)
+	GetConversationMessages(conversationID string, param GetConversationMessagesParam) (*GetConversationMessagesResponse, error)
+	GetConversations(params GetConversationsParam) (*GetConversationsResponse, error)
+	SendMessageToConversationID(conversationID string, body SendMessageToConversationIDReq) (*SendMessageToConversationIDResp, error)
+	ReadMessageConversationID(conversationID string) (*ReadMessageConversationIDResp, error)
+	CreateConversation(body CreateConversationReq) (*CreateConversationResp, error)
+	UploadBuyerMessagesImages(filename string) (*UploadMessagesImagesResp, error)
 }
 
 type ChatServiceOp struct {
@@ -49,10 +49,11 @@ type DataConversationMessages struct {
 	UnsupportedMsgTips string                 `json:"unsupported_msg_tips"`
 }
 
-func (s *ChatServiceOp) GetConversationMessages(params GetConversationMessagesParam, conversationID, shopChiper, shopID, accessToken string) (*GetConversationMessagesResponse, error) {
+func (s *ChatServiceOp) GetConversationMessages(conversationID string, params GetConversationMessagesParam) (*GetConversationMessagesResponse, error) {
 	path := fmt.Sprintf("/customer_service/%s/conversations/%s/messages", s.client.appConfig.Version, conversationID)
 	resp := new(GetConversationMessagesResponse)
-	err := s.client.WithShopID(shopID).WithShopCipher(shopChiper).WithAccessToken(accessToken).Get(path, resp, params)
+	err := s.client.Get(path, resp, params)
+
 	return resp, err
 }
 
@@ -96,10 +97,12 @@ type DataGetConversations struct {
 	NextPageToken string          `json:"next_page_token"`
 }
 
-func (s *ChatServiceOp) GetConversations(params GetConversationsParam, shopChiper, shopID, accessToken string) (*GetConversationsResponse, error) {
+func (s *ChatServiceOp) GetConversations(params GetConversationsParam) (*GetConversationsResponse, error) {
 	path := fmt.Sprintf("/customer_service/%s/conversations", s.client.appConfig.Version)
 	resp := new(GetConversationsResponse)
-	err := s.client.WithShopID(shopID).WithShopCipher(shopChiper).WithAccessToken(accessToken).Get(path, resp, params)
+	err := s.client.
+		Get(path, resp, params)
+
 	return resp, err
 }
 
@@ -124,10 +127,11 @@ type DataSendMsgResponse struct {
 	MessageID string `json:"message_id"`
 }
 
-func (s *ChatServiceOp) SendMessageToConversationID(body SendMessageToConversationIDReq, conversationID, shopChiper, accessToken string) (*SendMessageToConversationIDResp, error) {
+func (s *ChatServiceOp) SendMessageToConversationID(conversationID string, body SendMessageToConversationIDReq) (*SendMessageToConversationIDResp, error) {
 	path := fmt.Sprintf("/customer_service/%s/conversations/%s/messages", s.client.appConfig.Version, conversationID)
+
 	resp := new(SendMessageToConversationIDResp)
-	err := s.client.WithShopCipher(shopChiper).WithAccessToken(accessToken).Post(path, body, resp)
+	err := s.client.Post(path, body, resp)
 	return resp, err
 }
 
@@ -136,10 +140,11 @@ type ReadMessageConversationIDResp struct {
 	Data interface{} `json:"data"`
 }
 
-func (s *ChatServiceOp) ReadMessageConversationID(conversationID, shopChiper, accessToken string) (*ReadMessageConversationIDResp, error) {
+func (s *ChatServiceOp) ReadMessageConversationID(conversationID string) (*ReadMessageConversationIDResp, error) {
 	path := fmt.Sprintf("/customer_service/%s/conversations/%s/messages/read", s.client.appConfig.Version, conversationID)
 	resp := new(ReadMessageConversationIDResp)
-	err := s.client.WithShopCipher(shopChiper).WithAccessToken(accessToken).Post(path, nil, resp)
+	err := s.client.Post(path, nil, resp)
+
 	return resp, err
 }
 
@@ -154,10 +159,10 @@ type DataUploadMessagesImages struct {
 	Width  int    `json:"width"`
 }
 
-func (s *ChatServiceOp) UploadBuyerMessagesImages(filename, shopChiper, accessToken string) (*UploadMessagesImagesResp, error) {
+func (s *ChatServiceOp) UploadBuyerMessagesImages(filename string) (*UploadMessagesImagesResp, error) {
 	path := fmt.Sprintf("/customer_service/%s/images/upload", s.client.appConfig.Version)
 	resp := new(UploadMessagesImagesResp)
-	err := s.client.WithShopCipher(shopChiper).WithAccessToken(accessToken).Upload(path, "data", filename, resp)
+	err := s.client.Upload(path, "data", filename, resp)
 	return resp, err
 }
 
@@ -174,9 +179,9 @@ type DataCreateConversationResp struct {
 	ConversationID string `json:"conversation_id"`
 }
 
-func (s *ChatServiceOp) CreateConversation(body CreateConversationReq, shopChiper, accessToken string) (*CreateConversationResp, error) {
+func (s *ChatServiceOp) CreateConversation(body CreateConversationReq) (*CreateConversationResp, error) {
 	path := fmt.Sprintf("/customer_service/%s/conversations", s.client.appConfig.Version)
 	resp := new(CreateConversationResp)
-	err := s.client.WithShopCipher(shopChiper).WithAccessToken(accessToken).Post(path, body, resp)
+	err := s.client.Post(path, body, resp)
 	return resp, err
 }

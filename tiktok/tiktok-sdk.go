@@ -41,12 +41,13 @@ type TiktokClient struct {
 	retries  int
 	attempts int
 
-	ShopChiper  string
+	ShopCipher  string
 	AccessToken string
 	ShopID      string
 
 	Auth AuthService
 	Util UtilService
+	Chat ChatService
 }
 
 func NewClient(app AppConfig, opts ...Option) *TiktokClient {
@@ -64,6 +65,7 @@ func NewClient(app AppConfig, opts ...Option) *TiktokClient {
 
 	c.Auth = &AuthServiceOp{client: c}
 	c.Util = &UtilServiceOp{client: c}
+	c.Chat = &ChatServiceOp{client: c}
 
 	// apply any options
 	for _, opt := range opts {
@@ -73,8 +75,8 @@ func NewClient(app AppConfig, opts ...Option) *TiktokClient {
 	return c
 }
 
-func (c *TiktokClient) WithShopChiper(chiper, version string) *TiktokClient {
-	c.ShopChiper = chiper
+func (c *TiktokClient) WithShopCipher(cipher string) *TiktokClient {
+	c.ShopCipher = cipher
 	return c
 }
 
@@ -101,8 +103,8 @@ func (c *TiktokClient) makeSignature(req *http.Request) string {
 	u := req.URL
 
 	query := u.Query()
-	if c.ShopChiper != "" {
-		query.Add("shop_chiper", fmt.Sprintf("%v", c.ShopChiper))
+	if c.ShopCipher != "" {
+		query.Add("shop_cipher", fmt.Sprintf("%v", c.ShopCipher))
 	}
 
 	if c.ShopID != "" {

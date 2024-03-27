@@ -142,6 +142,24 @@ func (s *ChatServiceOp) ReadMessageConversationID(conversationID, shopChiper, ac
 	return resp, err
 }
 
+type UploadMessagesImagesResp struct {
+	BaseResponse
+	Data *DataUploadMessagesImages `json:"data"`
+}
+
+type DataUploadMessagesImages struct {
+	Height int    `json:"height"`
+	URL    string `json:"url"`
+	Width  int    `json:"width"`
+}
+
+func (s *ChatServiceOp) UploadBuyerMessagesImages(filename, shopChiper, accessToken string) (*UploadMessagesImagesResp, error) {
+	path := fmt.Sprintf("/customer_service/%s/images/upload", s.client.appConfig.Version)
+	resp := new(UploadMessagesImagesResp)
+	err := s.client.WithShopCipher(shopChiper).WithAccessToken(accessToken).Upload(path, "file", filename, resp)
+	return resp, err
+}
+
 type CreateConversationReq struct {
 	BuyerUserID string `json:"buyer_user_id"`
 }

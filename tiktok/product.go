@@ -27,8 +27,8 @@ type ProductData struct {
 	ID                string             `json:"id"`
 	IsCodAllowed      bool               `json:"is_cod_allowed"`
 	MainImages        []MainImage        `json:"main_images"`
-	PackageDimensions PackageDimensions  `json:"package_dimensions"`
-	PackageWeight     PackageWeight      `json:"package_weight"`
+	PackageDimensions *PackageDimensions `json:"package_dimensions"`
+	PackageWeight     *PackageWeight     `json:"package_weight"`
 	ProductAttributes []ProductAttribute `json:"product_attributes"`
 	Skus              []Skus             `json:"skus"`
 	Status            string             `json:"status"`
@@ -78,7 +78,7 @@ type Skus struct {
 	ID              string         `json:"id"`
 	IdentifierCode  IdentifierCode `json:"identifier_code"`
 	Inventory       []Inventory    `json:"inventory"`
-	Price           Price          `json:"price"`
+	Price           *Price         `json:"price"`
 	SalesAttributes []interface{}  `json:"sales_attributes"`
 	SellerSku       string         `json:"seller_sku"`
 }

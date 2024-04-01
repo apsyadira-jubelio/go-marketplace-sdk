@@ -3,52 +3,57 @@ package tiktok
 import "fmt"
 
 type ProductService interface {
-	GetProductByID(conversationID string) (*GetProductByIDResp, error)
+	GetProductInfo(productID string) (*GetProductInfoResponse, error)
 }
 
 type ProductServiceOp struct {
 	client *TiktokClient
 }
 
-type GetProductByIDResp struct {
+type GetProductParamRequest struct {
+	ProductID string `url:"product_id"`
+}
+
+type GetProductInfoResponse struct {
 	BaseResponse
-	Data DataProduct `json:"data"`
+	Data *ProductData `json:"data"`
 }
 
-type DataProduct struct {
-	AuditFailedReasons []AuditFailedReasons `json:"audit_failed_reasons"`
-	CategoryChains     []CategoryChains     `json:"category_chains"`
-	CreateTime         int                  `json:"create_time"`
-	Description        string               `json:"description"`
-	ID                 string               `json:"id"`
-	IsCodAllowed       bool                 `json:"is_cod_allowed"`
-	MainImages         []MainImages         `json:"main_images"`
-	PackageDimensions  *PackageDimensions   `json:"package_dimensions"`
-	PackageWeight      *PackageWeight       `json:"package_weight"`
-	Skus               []Skus               `json:"skus"`
-	Status             string               `json:"status"`
-	Title              string               `json:"title"`
-	UpdateTime         int                  `json:"update_time"`
+type ProductData struct {
+	Brand             Brand              `json:"brand"`
+	CategoryChains    []CategoryChain    `json:"category_chains"`
+	CreateTime        int64              `json:"create_time"`
+	Description       string             `json:"description"`
+	ID                string             `json:"id"`
+	IsCodAllowed      bool               `json:"is_cod_allowed"`
+	MainImages        []MainImage        `json:"main_images"`
+	PackageDimensions PackageDimensions  `json:"package_dimensions"`
+	PackageWeight     PackageWeight      `json:"package_weight"`
+	ProductAttributes []ProductAttribute `json:"product_attributes"`
+	Skus              []Skus             `json:"skus"`
+	Status            string             `json:"status"`
+	Title             string             `json:"title"`
+	UpdateTime        int64              `json:"update_time"`
 }
 
-type AuditFailedReasons struct {
-	Position    string   `json:"position"`
-	Reasons     []string `json:"reasons"`
-	Suggestions []string `json:"suggestions"`
+type Brand struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
-type CategoryChains struct {
+
+type CategoryChain struct {
 	ID        string `json:"id"`
 	IsLeaf    bool   `json:"is_leaf"`
 	LocalName string `json:"local_name"`
 	ParentID  string `json:"parent_id"`
 }
 
-type MainImages struct {
-	Height    int      `json:"height"`
+type MainImage struct {
+	Height    int64    `json:"height"`
 	ThumbUrls []string `json:"thumb_urls"`
 	URI       string   `json:"uri"`
 	Urls      []string `json:"urls"`
-	Width     int      `json:"width"`
+	Width     int64    `json:"width"`
 }
 
 type PackageDimensions struct {
@@ -62,8 +67,28 @@ type PackageWeight struct {
 	Unit  string `json:"unit"`
 	Value string `json:"value"`
 }
+
+type ProductAttribute struct {
+	ID     string  `json:"id"`
+	Name   string  `json:"name"`
+	Values []Brand `json:"values"`
+}
+
+type Skus struct {
+	ID              string         `json:"id"`
+	IdentifierCode  IdentifierCode `json:"identifier_code"`
+	Inventory       []Inventory    `json:"inventory"`
+	Price           Price          `json:"price"`
+	SalesAttributes []interface{}  `json:"sales_attributes"`
+	SellerSku       string         `json:"seller_sku"`
+}
+
+type IdentifierCode struct {
+	Type string `json:"type"`
+}
+
 type Inventory struct {
-	Quantity    int    `json:"quantity"`
+	Quantity    int64  `json:"quantity"`
 	WarehouseID string `json:"warehouse_id"`
 }
 
@@ -73,33 +98,11 @@ type Price struct {
 	TaxExclusivePrice string `json:"tax_exclusive_price"`
 }
 
-type SkuImg struct {
-	Height    int      `json:"height"`
-	ThumbUrls []string `json:"thumb_urls"`
-	URI       string   `json:"uri"`
-	Urls      []string `json:"urls"`
-	Width     int      `json:"width"`
-}
-
-type SalesAttributes struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	SkuImg    SkuImg `json:"sku_img,omitempty"`
-	ValueID   string `json:"value_id"`
-	ValueName string `json:"value_name"`
-}
-
-type Skus struct {
-	ID              string            `json:"id"`
-	Inventory       []Inventory       `json:"inventory"`
-	Price           *Price            `json:"price"`
-	SalesAttributes []SalesAttributes `json:"sales_attributes"`
-	SellerSku       string            `json:"seller_sku"`
-}
-
-func (p *ProductServiceOp) GetProductByID(productID string) (*GetProductByIDResp, error) {
+func (p *ProductServiceOp) GetProductInfo(productID string) (*GetProductInfoResponse, error) {
 	path := fmt.Sprintf("/product/%s/products/%s", p.client.appConfig.Version, productID)
-	resp := new(GetProductByIDResp)
+
+	resp := new(GetProductInfoResponse)
 	err := p.client.Get(path, resp, nil)
+
 	return resp, err
 }

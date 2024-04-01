@@ -26,10 +26,10 @@ func main() {
 	client.WithCommonParamRequest(tiktok.CommonParamRequest{
 		ShopID:      "123",
 		ShopCipher:  "123",
-		AccessToken: "123",
+		AccessToken: "",
 	})
 
-	resp, err := client.Chat.ReadMessageConversationID("7350198843860353287")
+	resp, err := client.Product.GetProductInfo("1729566149861017354")
 
 	if err != nil {
 		log.Fatal(err)

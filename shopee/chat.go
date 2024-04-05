@@ -79,9 +79,9 @@ func (s *ChatServiceOp) GetMessage(shopID uint64, token string, params GetMessag
 }
 
 type GetConversationParamsRequest struct {
-	Direction    string `url:"direction"`
+	Direction    string `url:"direction"` // latest/older
 	Type         string `url:"type"`
-	NextTimeNano int64  `url:"next_timestamp_nano"`
+	NextTimeNano int64  `url:"next_timestamp_nano,omitempty"`
 	PageSize     int    `url:"page_size"`
 }
 

@@ -24,10 +24,7 @@ func main() {
 
 	//c:QPVk0IZVQp-Ie2zSgSf1cg
 	// 2545808044
-	resp, err := client.Chat.SendMessage("c:Q07-p3k8SvKrWlEMoE_wUg", 2545808044, tokopedia.SendMessageBody{
-		ShopID:  14892734,
-		Message: "Test 123",
-	})
+	resp, err := client.Product.GetProductInfo("c:Q07-p3k8SvKrWlEMoE_wUg", 0)
 
 	if err != nil {
 		log.Fatal(err)

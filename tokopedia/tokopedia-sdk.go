@@ -37,6 +37,7 @@ type TokopediaClient struct {
 	Auth    AuthService
 	Chat    ChatService
 	Product ProductService
+	Shop    ShopService
 }
 
 type CommonParamRequest struct {
@@ -62,6 +63,7 @@ func NewClient(app AppConfig, opts ...Option) *TokopediaClient {
 	c.Auth = &AuthServiceOp{client: c}
 	c.Chat = &ChatServiceOp{client: c}
 	c.Product = &ProductServiceOp{client: c}
+	c.Shop = &ShopServiceOp{client: c}
 
 	// apply any options
 	for _, opt := range opts {

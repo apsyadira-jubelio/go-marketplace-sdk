@@ -50,22 +50,22 @@ type ReplyListResponse struct {
 }
 
 type ReplyData struct {
-	MsgID         int         `json:"msg_id"`
-	SenderID      int         `json:"sender_id"`
-	Role          string      `json:"role"`
-	Msg           string      `json:"msg"`
-	ReplyTime     int64       `json:"reply_time"`
-	ReplyID       int         `json:"reply_id"`
-	SenderName    string      `json:"sender_name"`
-	ReadStatus    int         `json:"read_status"`
-	ReadTime      int64       `json:"read_time"`
-	Status        int         `json:"status"`
-	AttachmentID  int         `json:"attachment_id"`
-	MessageIsRead bool        `json:"message_is_read"`
-	IsOpposite    bool        `json:"is_opposite"`
-	IsFirstReply  bool        `json:"is_first_reply"`
-	IsReported    bool        `json:"is_reported"`
-	Attachment    interface{} `json:"attachment"`
+	MsgID         int             `json:"msg_id"`
+	SenderID      int             `json:"sender_id"`
+	Role          string          `json:"role"`
+	Msg           string          `json:"msg"`
+	ReplyTime     int64           `json:"reply_time"`
+	ReplyID       int             `json:"reply_id"`
+	SenderName    string          `json:"sender_name"`
+	ReadStatus    int             `json:"read_status"`
+	ReadTime      int64           `json:"read_time"`
+	Status        int             `json:"status"`
+	AttachmentID  int             `json:"attachment_id"`
+	MessageIsRead bool            `json:"message_is_read"`
+	IsOpposite    bool            `json:"is_opposite"`
+	IsFirstReply  bool            `json:"is_first_reply"`
+	IsReported    bool            `json:"is_reported"`
+	Attachment    ReplyAttachment `json:"attachment"`
 }
 
 type ReplyAttachment struct {

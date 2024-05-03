@@ -16,18 +16,12 @@ type HeaderResponse struct {
 	ProcessTime int    `json:"process_time"`
 	Messages    string `json:"messages"`
 	Reason      string `json:"reason"`
-	ErrorCode   string `json:"error_code"`
 }
 
 // A general response error
 type ResponseError struct {
 	Header HeaderResponse `json:"header"`
 	Data   interface{}    `json:"data"`
-}
-
-// GetStatus returns http  response status
-func (e ResponseError) GetStatus() string {
-	return e.Header.ErrorCode
 }
 
 // GetMessage returns response error message
@@ -91,7 +85,7 @@ func CheckResponseError(r *http.Response) error {
 		}
 	}
 
-	if tokopediaError.Header.ErrorCode == "" && http.StatusOK <= r.StatusCode && r.StatusCode < http.StatusMultipleChoices {
+	if tokopediaError.Header.Reason == "" && http.StatusOK <= r.StatusCode && r.StatusCode < http.StatusMultipleChoices {
 		return nil
 	}
 

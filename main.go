@@ -24,7 +24,10 @@ func main() {
 
 	//c:QPVk0IZVQp-Ie2zSgSf1cg
 	// 2545808044
-	resp, err := client.Product.GetProductInfo("c:Q07-p3k8SvKrWlEMoE_wUg", 12886005779)
+	resp, err := client.Chat.GetReplyList("c:Q07-p3k8SvKrWlEMoE_wUg", tokopedia.GetReplyListParams{
+		ShopID: 14892734,
+		MsgID:  2545808044,
+	})
 
 	if err != nil {
 		log.Fatal(err)

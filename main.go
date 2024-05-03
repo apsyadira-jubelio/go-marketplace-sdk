@@ -4,36 +4,34 @@ import (
 	"log"
 	"os"
 
-	"github.com/apsyadira-jubelio/go-marketplace-sdk/tiktok"
+	"github.com/apsyadira-jubelio/go-marketplace-sdk/tokopedia"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )
 
 func main() {
 	godotenv.Load()
-	// playground
-	appConfig := tiktok.AppConfig{
-		AppKey:    os.Getenv("TIKTOK_APP_KEY"),
-		AppSecret: os.Getenv("TIKTOK_APP_SECRET"),
-		APIURL:    tiktok.OpenAPIURL,
-		Version:   "202309",
+
+	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmsgprefix)
+
+	app := tokopedia.AppConfig{
+		FsID:   14332,
+		APIURL: "https://fs.tokopedia.net",
 	}
 
-	client := tiktok.NewClient(appConfig)
+	withProxy := tokopedia.WithSocks5(os.Getenv("SOCKS_ADDRESS"))
+	client := tokopedia.NewClient(app, withProxy)
 
-	// use with common param request to set shop_id, shop_cipher, access_token
-	// to access the OpenAPI
-	client.WithCommonParamRequest(tiktok.CommonParamRequest{
-		ShopID:      "123",
-		ShopCipher:  "123",
-		AccessToken: "",
+	//c:QPVk0IZVQp-Ie2zSgSf1cg
+	// 2545808044
+	resp, err := client.Chat.SendMessage("c:Q07-p3k8SvKrWlEMoE_wUg", 2545808044, tokopedia.SendMessageBody{
+		ShopID:  14892734,
+		Message: "Test 123",
 	})
-
-	resp, err := client.Product.GetProductInfo("1729566149861017354")
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	spew.Dump(resp)
+	log.Println(spew.Sdump(resp))
 }

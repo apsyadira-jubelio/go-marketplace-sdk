@@ -24,7 +24,7 @@ func main() {
 
 	//c:QPVk0IZVQp-Ie2zSgSf1cg
 	// 2545808044
-	resp, err := client.Product.GetProductInfo("c:Q07-p3k8SvKrWlEMoE_wUg", 0)
+	resp, err := client.Product.GetProductInfo("c:Q07-p3k8SvKrWlEMoE_wUg", 12886005779)
 
 	if err != nil {
 		log.Fatal(err)

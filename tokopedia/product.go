@@ -2,12 +2,15 @@ package tokopedia
 
 import (
 	"fmt"
-	"time"
 )
 
 type ProductInfoResponse struct {
 	BaseResponse
-	Data ProductData `json:"data"`
+	Data []ProductData `json:"data"`
+}
+
+type ProductParams struct {
+	ProductID int `url:"product_id"`
 }
 
 type ProductData struct {
@@ -45,8 +48,6 @@ type ProductData struct {
 		ID   int    `json:"id"`
 		Name string `json:"Name"`
 	} `json:"menu"`
-	Preorder struct {
-	} `json:"preorder"`
 	ExtraAttribute struct {
 		MinOrder           int  `json:"minOrder"`
 		LastUpdateCategory int  `json:"lastUpdateCategory"`
@@ -81,25 +82,7 @@ type ProductData struct {
 		Sku       string `json:"sku"`
 		URL       string `json:"url"`
 		MobileURL string `json:"mobileURL"`
-	} `json:"other"`
-	Campaign struct {
-		StartDate time.Time `json:"StartDate"`
-		EndDate   time.Time `json:"EndDate"`
-	} `json:"campaign"`
-	Warehouses []struct {
-		ProductID   int `json:"productID"`
-		WarehouseID int `json:"warehouseID"`
-		Price       struct {
-			Value          int `json:"value"`
-			Currency       int `json:"currency"`
-			LastUpdateUnix int `json:"LastUpdateUnix"`
-			Idr            int `json:"idr"`
-		} `json:"price"`
-		Stock struct {
-			UseStock bool `json:"useStock"`
-			Value    int  `json:"value"`
-		} `json:"stock"`
-	} `json:"warehouses"`
+	}
 }
 
 type ProductService interface {
@@ -119,8 +102,8 @@ func (p *ProductServiceOp) GetProductInfo(token string, productID int) (res *Pro
 		return nil, fmt.Errorf("product_id is required")
 	}
 
-	params := map[string]interface{}{
-		"product_id": productID,
+	params := ProductParams{
+		ProductID: productID,
 	}
 
 	err = p.client.WithAccessToken(token).Get(path, resp, params)

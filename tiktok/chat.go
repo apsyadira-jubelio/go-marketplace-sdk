@@ -107,10 +107,12 @@ func (s *ChatServiceOp) GetConversations(params GetConversationsParam) (*GetConv
 }
 
 const (
-	TypeMessageText    = "TEXT"
-	TypeMessageProduct = "PRODUCT_CARD"
-	TypeMessageImage   = "IMAGE"
-	TypeMessageOrder   = "ORDER_CARD"
+	TypeMessageText      = "TEXT"
+	TypeMessageProduct   = "PRODUCT_CARD"
+	TypeMessageImage     = "IMAGE"
+	TypeMessageOrder     = "ORDER_CARD"
+	TypeMessageVideo     = "VIDEO"
+	TypeMessageEmoticons = "EMOTICONS"
 )
 
 type SendMessageToConversationIDReq struct {

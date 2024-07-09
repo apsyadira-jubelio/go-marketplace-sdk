@@ -20,6 +20,7 @@ var ApiNames = map[string]string{
 	"SendMessage":            "/im/message/send",
 	"GetMultipleOrdersItems": "/orders/items/get",
 	"GetOrders":              "/orders/get",
+	"GetVideo":               "/media/video/get",
 }
 
 type Region string

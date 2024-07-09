@@ -1,10 +1,10 @@
 package main
 
 import (
+	"context"
 	"log"
-	"os"
 
-	"github.com/apsyadira-jubelio/go-marketplace-sdk/tokopedia"
+	"github.com/apsyadira-jubelio/go-marketplace-sdk/lazada"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )
@@ -12,25 +12,16 @@ import (
 func main() {
 	godotenv.Load()
 
-	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmsgprefix)
-
-	app := tokopedia.AppConfig{
-		FsID:   14332,
-		APIURL: "https://fs.tokopedia.net",
-	}
-
-	withProxy := tokopedia.WithSocks5(os.Getenv("SOCKS_ADDRESS"))
-	client := tokopedia.NewClient(app, withProxy)
-
-	//c:QPVk0IZVQp-Ie2zSgSf1cg
-	// 2545808044
-	resp, err := client.Shop.GetShopInfo("c:Q07-p3k8SvKrWlEMoE_wUg", tokopedia.ShopParams{
-		ShopID: 14892734,
+	appKey := ""
+	appSecret := ""
+	// playground
+	client := lazada.NewClient(appKey, appSecret, lazada.Indonesia)
+	client.NewTokenClient("")
+	resp, err := client.Media.GetVideo(context.Background(), &lazada.GetVideoParameter{
+		VideoID: "3026611400",
 	})
-
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.Println(spew.Sdump(resp))
+	spew.Dump(resp)
 }

@@ -42,6 +42,7 @@ type Client struct {
 	Chat    *ChatService
 	Product *ProductService
 	Order   *OrderService
+	Media   *MediaService
 }
 
 type service struct {
@@ -96,6 +97,7 @@ func NewClient(appKey, secret string, region Region) *Client {
 	c.Chat = (*ChatService)(&c.common)
 	c.Product = (*ProductService)(&c.common)
 	c.Order = (*OrderService)(&c.common)
+	c.Media = (*MediaService)(&c.common)
 	return c
 }
 

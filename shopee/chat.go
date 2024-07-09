@@ -47,6 +47,7 @@ type ContentMessage struct {
 	Url              string        `json:"url,omitempty"`
 	ThumbHeight      int           `json:"thumb_height,omitempty"`
 	ThumbWidth       int           `json:"thumb_width,omitempty"`
+	ThumbURL         string        `json:"thumb_url,omitempty"`
 	FileServerID     int64         `json:"file_server_id,omitempty"`
 	ShopID           int64         `json:"shop_id,omitempty"`
 	OfferID          int           `json:"offer_id,omitempty"`
@@ -54,10 +55,11 @@ type ContentMessage struct {
 	TaxValue         string        `json:"tax_value,omitempty"`
 	PriceBeforeTax   string        `json:"price_before_tax,omitempty"`
 	TaxApplicable    bool          `json:"tax_applicable,omitempty"`
-	StickerID        string        `json:"stiker_id,omitempty"`
+	StickerID        string        `json:"sticker_id,omitempty"`
 	StickerPackageID string        `json:"sticker_package_id,omitempty"`
 	ItemID           int64         `json:"item_id,omitempty"`
 	OrderID          int64         `json:"order_id,omitempty"`
+	VideoURL         string        `json:"video_url,omitempty"`
 	SourceContent    SourceContent `json:"source_content,omitempty"`
 }
 

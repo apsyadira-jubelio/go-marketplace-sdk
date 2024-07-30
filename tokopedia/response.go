@@ -15,13 +15,16 @@ type BaseResponse struct {
 type HeaderResponse struct {
 	ProcessTime int    `json:"process_time"`
 	Messages    string `json:"messages"`
+	Message     string `json:"message"`
 	Reason      string `json:"reason"`
 }
 
 // A general response error
 type ResponseError struct {
-	Header HeaderResponse `json:"header"`
-	Data   interface{}    `json:"data"`
+	Header  HeaderResponse `json:"header"`
+	Data    interface{}    `json:"data"`
+	Message string         `json:"message"`
+	ReqID   string         `json:"req_id"`
 }
 
 // GetMessage returns response error message
@@ -37,6 +40,8 @@ func (e ResponseError) GetErrors() string {
 func (e ResponseError) Error() string {
 	if e.Header.Messages != "" {
 		return e.Header.Messages + " " + e.Header.Reason
+	} else if e.Message != "" {
+		return e.Message
 	}
 
 	return "Unknown Error"
@@ -90,28 +95,25 @@ func CheckResponseError(r *http.Response) error {
 	}
 
 	responseError := ResponseError{
-		Header: tokopediaError.Header,
-		Data:   tokopediaError.Data,
+		Header:  tokopediaError.Header,
+		Data:    tokopediaError.Data,
+		Message: tokopediaError.Message,
 	}
 
 	return wrapSpecificError(r, responseError)
 }
 
 func wrapSpecificError(r *http.Response, err ResponseError) error {
-	// TODO: check rate-limit error for shopee
+	// TODO: check rate-limit error for tokopedia
 	if r.StatusCode == http.StatusTooManyRequests {
-		f, _ := strconv.ParseFloat(r.Header.Get("Retry-After"), 64)
-		return RateLimitError{
+		f, _ := strconv.ParseFloat(r.Header.Get("X-Ratelimit-Full-Reset-After"), 64)
+		errRateLimit := RateLimitError{
 			ResponseError: err,
 			RetryAfter:    int(f),
 		}
+		// log.Println("error in wrap specific error:", errRateLimit)
+		return errRateLimit
 	}
-
-	// if err.Status == http.StatusSeeOther {
-	// todo
-	// The response to the request can be found under a different URL in the
-	// Location header and can be retrieved using a GET method on that resource.
-	// }
 
 	if r.StatusCode == http.StatusNotAcceptable {
 		err.Header.Messages = http.StatusText(r.StatusCode)

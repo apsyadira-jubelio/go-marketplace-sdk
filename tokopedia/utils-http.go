@@ -227,17 +227,16 @@ func (c *TokopediaClient) doGetHeaders(req *http.Request, v interface{}, skipBod
 		}
 
 		// retry scenario, close resp and any continue will retry
-		resp.Body.Close()
+		defer resp.Body.Close()
 
 		if retries <= 1 {
 			return nil, respErr
 		}
 
-		if rateLimitErr, isRetryErr := respErr.(RateLimitError); isRetryErr {
+		if respErr.(RateLimitError).RetryAfter != 0 {
+			rateLimitErr := respErr.(RateLimitError)
 			// back off and retry
-
 			wait := time.Duration(rateLimitErr.RetryAfter) * time.Second
-			c.log.Infof("rate limited waiting %s", wait.String())
 			time.Sleep(wait)
 			retries--
 			continue

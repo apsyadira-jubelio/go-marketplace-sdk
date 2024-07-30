@@ -233,7 +233,7 @@ func (c *TokopediaClient) doGetHeaders(req *http.Request, v interface{}, skipBod
 			return nil, respErr
 		}
 
-		if respErr.(RateLimitError).RetryAfter != 0 {
+		if _, ok := respErr.(RateLimitError); ok {
 			rateLimitErr := respErr.(RateLimitError)
 			// back off and retry
 			wait := time.Duration(rateLimitErr.RetryAfter) * time.Second

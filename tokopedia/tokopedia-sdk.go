@@ -21,11 +21,10 @@ type AppConfig struct {
 }
 
 type TokopediaClient struct {
-	Client     *http.Client
-	log        LeveledLoggerInterface
-	appConfig  AppConfig
-	baseURL    *url.URL
-	HeaderHTTP http.Header
+	Client    *http.Client
+	log       LeveledLoggerInterface
+	appConfig AppConfig
+	baseURL   *url.URL
 
 	// max number of retries, defaults to 0 for no retries see WithRetry option
 	retries  int

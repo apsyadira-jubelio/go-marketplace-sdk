@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -28,13 +29,9 @@ func (c *TokopediaClient) CreateAndDo(method, relPath string, data, options, hea
 
 	}()
 
-	respHeader, err := c.createAndDoGetHeaders(method, relPath, data, options, headers, resource)
+	_, err := c.createAndDoGetHeaders(method, relPath, data, options, headers, resource)
 	if err != nil {
 		return err
-	}
-
-	if respHeader != nil {
-		c.HeaderHTTP = respHeader
 	}
 
 	return nil
@@ -270,7 +267,36 @@ func (c *TokopediaClient) doGetHeaders(req *http.Request, v interface{}, skipBod
 		if err != nil {
 			return nil, err
 		}
+		// for chat/product only
+		addHeadersToResponse(v, resp)
 	}
 
 	return resp.Header, nil
+}
+
+// addHeadersToResponse adds common headers to different response structs
+func addHeadersToResponse(v interface{}, resp *http.Response) {
+	headers := map[string]string{
+		"X-Ratelimit-Full-Reset-After": resp.Header.Get("X-Ratelimit-Full-Reset-After"),
+		"X-Ratelimit-Limit":            resp.Header.Get("X-Ratelimit-Limit"),
+		"X-Ratelimit-Remaining":        resp.Header.Get("X-Ratelimit-Remaining"),
+		"X-Ratelimit-Reset-After":      resp.Header.Get("X-Ratelimit-Reset-After"),
+	}
+
+	switch response := v.(type) {
+	case *ReplyListResponse:
+		response.Header.StatusCode = resp.StatusCode
+		response.Header.HTTPHeader = headers
+	case *MessageResponse:
+		response.Header.StatusCode = resp.StatusCode
+		response.Header.HTTPHeader = headers
+	case *SendMessageResponse:
+		response.Header.StatusCode = resp.StatusCode
+		response.Header.HTTPHeader = headers
+	case *ProductInfoResponse:
+		response.Header.StatusCode = resp.StatusCode
+		response.Header.HTTPHeader = headers
+	default:
+		log.Println("response header is not mandatory")
+	}
 }

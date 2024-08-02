@@ -13,10 +13,12 @@ type BaseResponse struct {
 }
 
 type HeaderResponse struct {
-	ProcessTime int    `json:"process_time"`
-	Messages    string `json:"messages"`
-	Message     string `json:"message"`
-	Reason      string `json:"reason"`
+	ProcessTime int               `json:"process_time"`
+	Messages    string            `json:"messages"`
+	Message     string            `json:"message"`
+	Reason      string            `json:"reason"`
+	StatusCode  int               `json:"http_code"`
+	HTTPHeader  map[string]string `json:"http_header"`
 }
 
 // A general response error
@@ -94,11 +96,20 @@ func CheckResponseError(r *http.Response) error {
 		return nil
 	}
 
+	headers := map[string]string{
+		"X-Ratelimit-Full-Reset-After": r.Header.Get("X-Ratelimit-Full-Reset-After"),
+		"X-Ratelimit-Limit":            r.Header.Get("X-Ratelimit-Limit"),
+		"X-Ratelimit-Remaining":        r.Header.Get("X-Ratelimit-Remaining"),
+		"X-Ratelimit-Reset-After":      r.Header.Get("X-Ratelimit-Reset-After"),
+	}
+	tokopediaError.Header.HTTPHeader = headers
+	tokopediaError.Header.StatusCode = r.StatusCode
 	responseError := ResponseError{
 		Header:  tokopediaError.Header,
 		Data:    tokopediaError.Data,
 		Message: tokopediaError.Message,
 	}
+	// log.Println(responseError.Header)
 
 	return wrapSpecificError(r, responseError)
 }

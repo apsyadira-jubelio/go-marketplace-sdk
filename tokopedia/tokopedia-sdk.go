@@ -25,7 +25,7 @@ type TokopediaClient struct {
 	log        LeveledLoggerInterface
 	appConfig  AppConfig
 	baseURL    *url.URL
-	HeaderHTTP *http.Header
+	HeaderHTTP http.Header
 
 	// max number of retries, defaults to 0 for no retries see WithRetry option
 	retries  int

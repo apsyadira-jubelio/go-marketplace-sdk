@@ -34,7 +34,7 @@ func (c *TokopediaClient) CreateAndDo(method, relPath string, data, options, hea
 	}
 
 	if respHeader != nil {
-		c.HeaderHTTP = &respHeader
+		c.HeaderHTTP = respHeader
 	}
 
 	return nil

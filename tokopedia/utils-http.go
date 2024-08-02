@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/google/go-querystring/query"
 )
@@ -29,10 +28,15 @@ func (c *TokopediaClient) CreateAndDo(method, relPath string, data, options, hea
 
 	}()
 
-	_, err := c.createAndDoGetHeaders(method, relPath, data, options, headers, resource)
+	respHeader, err := c.createAndDoGetHeaders(method, relPath, data, options, headers, resource)
 	if err != nil {
 		return err
 	}
+
+	if respHeader != nil {
+		c.HeaderHTTP = &respHeader
+	}
+
 	return nil
 }
 
@@ -233,14 +237,14 @@ func (c *TokopediaClient) doGetHeaders(req *http.Request, v interface{}, skipBod
 			return nil, respErr
 		}
 
-		if _, ok := respErr.(RateLimitError); ok {
-			rateLimitErr := respErr.(RateLimitError)
-			// back off and retry
-			wait := time.Duration(rateLimitErr.RetryAfter) * time.Second
-			time.Sleep(wait)
-			retries--
-			continue
-		}
+		// if _, ok := respErr.(RateLimitError); ok {
+		// 	rateLimitErr := respErr.(RateLimitError)
+		// 	// back off and retry
+		// 	wait := time.Duration(rateLimitErr.RetryAfter) * time.Second
+		// 	time.Sleep(wait)
+		// 	retries--
+		// 	continue
+		// }
 
 		var doRetry bool
 		switch resp.StatusCode {

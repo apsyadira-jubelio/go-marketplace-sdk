@@ -96,14 +96,14 @@ func CheckResponseError(r *http.Response) error {
 		return nil
 	}
 
-	headers := map[string]string{
-		"X-Ratelimit-Full-Reset-After": r.Header.Get("X-Ratelimit-Full-Reset-After"),
-		"X-Ratelimit-Limit":            r.Header.Get("X-Ratelimit-Limit"),
-		"X-Ratelimit-Remaining":        r.Header.Get("X-Ratelimit-Remaining"),
-		"X-Ratelimit-Reset-After":      r.Header.Get("X-Ratelimit-Reset-After"),
-	}
-	tokopediaError.Header.HTTPHeader = headers
-	tokopediaError.Header.StatusCode = r.StatusCode
+	// headers := map[string]string{
+	// 	"X-Ratelimit-Full-Reset-After": r.Header.Get("X-Ratelimit-Full-Reset-After"),
+	// 	"X-Ratelimit-Limit":            r.Header.Get("X-Ratelimit-Limit"),
+	// 	"X-Ratelimit-Remaining":        r.Header.Get("X-Ratelimit-Remaining"),
+	// 	"X-Ratelimit-Reset-After":      r.Header.Get("X-Ratelimit-Reset-After"),
+	// }
+	// tokopediaError.Header.HTTPHeader = headers
+	// tokopediaError.Header.StatusCode = r.StatusCode
 	responseError := ResponseError{
 		Header:  tokopediaError.Header,
 		Data:    tokopediaError.Data,
@@ -122,7 +122,6 @@ func wrapSpecificError(r *http.Response, err ResponseError) error {
 			ResponseError: err,
 			RetryAfter:    int(f),
 		}
-		// log.Println("error in wrap specific error:", errRateLimit)
 		return errRateLimit
 	}
 

@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/google/go-querystring/query"
 )
@@ -234,14 +235,14 @@ func (c *TokopediaClient) doGetHeaders(req *http.Request, v interface{}, skipBod
 			return nil, respErr
 		}
 
-		// if _, ok := respErr.(RateLimitError); ok {
-		// 	rateLimitErr := respErr.(RateLimitError)
-		// 	// back off and retry
-		// 	wait := time.Duration(rateLimitErr.RetryAfter) * time.Second
-		// 	time.Sleep(wait)
-		// 	retries--
-		// 	continue
-		// }
+		if _, ok := respErr.(RateLimitError); ok {
+			rateLimitErr := respErr.(RateLimitError)
+			// back off and retry
+			wait := time.Duration(rateLimitErr.RetryAfter) * time.Second
+			time.Sleep(wait)
+			retries--
+			continue
+		}
 
 		var doRetry bool
 		switch resp.StatusCode {
@@ -268,7 +269,7 @@ func (c *TokopediaClient) doGetHeaders(req *http.Request, v interface{}, skipBod
 			return nil, err
 		}
 		// for chat/product only
-		addHeadersToResponse(v, resp)
+		// addHeadersToResponse(v, resp)
 	}
 
 	return resp.Header, nil
@@ -297,6 +298,10 @@ func addHeadersToResponse(v interface{}, resp *http.Response) {
 		response.Header.StatusCode = resp.StatusCode
 		response.Header.HTTPHeader = headers
 	default:
-		log.Println("response header is not mandatory")
+		if response == nil {
+			log.Println("response header is nil")
+		} else {
+			log.Println("response header is not mandatory")
+		}
 	}
 }

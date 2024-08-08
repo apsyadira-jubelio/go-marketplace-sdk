@@ -155,7 +155,7 @@ func (opts *TokopediaHTTPOpts) GetProductInfo(params ProductParams) (*ProductInf
 	}
 	client.Transport = &http.Transport{Dial: dialer.Dial}
 
-	urlParam := fmt.Sprintf("%s/inventory/v1/fs/%d opts.APIURL,/product/info?product_id=%d", opts.APIURL, opts.FsID, params.ProductID)
+	urlParam := fmt.Sprintf("%s/inventory/v1/fs/%d/product/info?product_id=%d", opts.APIURL, opts.FsID, params.ProductID)
 	req, err := http.NewRequest(http.MethodGet, urlParam, nil)
 	if err != nil {
 		return nil, err

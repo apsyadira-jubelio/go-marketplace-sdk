@@ -16,9 +16,9 @@ import (
 )
 
 type TokopediaHTTPOpts struct {
-	token             string
-	fsID              int64
-	shopID            int64
+	Token             string
+	FsID              int64
+	ShopID            int64
 	SocksProxyAddress string
 	APIURL            string
 }
@@ -40,9 +40,9 @@ func NewTokopediaHTTPHandler(client *TokopediaClient, sockAddress string) (*Toko
 
 	intShopID, _ := strconv.Atoi(client.ShopID)
 	return &TokopediaHTTPOpts{
-		token:             client.AccessToken,
-		fsID:              int64(client.appConfig.FsID),
-		shopID:            int64(intShopID),
+		Token:             client.AccessToken,
+		FsID:              int64(client.appConfig.FsID),
+		ShopID:            int64(intShopID),
 		SocksProxyAddress: fmt.Sprintf("socks5://%s", sockAddress),
 		APIURL:            client.appConfig.APIURL,
 	}, nil
@@ -70,13 +70,13 @@ func (opts *TokopediaHTTPOpts) GetListMessages(params GetMessagesParams) (*Messa
 	}
 	client.Transport = &http.Transport{Dial: dialer.Dial}
 
-	urlParam := fmt.Sprintf("%s/v1/chat/fs/%d/messages?page=%d&per_page=%d&shop_id=%d", opts.APIURL, opts.fsID, params.Page, params.PerPage, opts.shopID)
+	urlParam := fmt.Sprintf("%s/v1/chat/fs/%d/messages?page=%d&per_page=%d&shop_id=%d", opts.APIURL, opts.FsID, params.Page, params.PerPage, opts.ShopID)
 	req, err := http.NewRequest(http.MethodGet, urlParam, nil)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+opts.token)
+	req.Header.Add("Authorization", "Bearer "+opts.Token)
 	req.Header.Add("Accept", "application/json")
 
 	isDone := false
@@ -155,13 +155,13 @@ func (opts *TokopediaHTTPOpts) GetProductInfo(params ProductParams) (*ProductInf
 	}
 	client.Transport = &http.Transport{Dial: dialer.Dial}
 
-	urlParam := fmt.Sprintf("%s/inventory/v1/fs/%d opts.APIURL,/product/info?product_id=%d", opts.APIURL, opts.fsID, params.ProductID)
+	urlParam := fmt.Sprintf("%s/inventory/v1/fs/%d opts.APIURL,/product/info?product_id=%d", opts.APIURL, opts.FsID, params.ProductID)
 	req, err := http.NewRequest(http.MethodGet, urlParam, nil)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+opts.token)
+	req.Header.Add("Authorization", "Bearer "+opts.Token)
 	req.Header.Add("Accept", "application/json")
 
 	isDone := false
@@ -240,13 +240,13 @@ func (opts *TokopediaHTTPOpts) GetReplyTokopedia(params GetReplyListParams) (*Re
 	}
 	client.Transport = &http.Transport{Dial: dialer.Dial}
 
-	urlParam := fmt.Sprintf("%s/v1/chat/fs/%d/messages/%d/replies?page=%d&per_page=%d&shop_id=%d", opts.APIURL, opts.fsID, params.MsgID, params.Page, params.PerPage, opts.shopID)
+	urlParam := fmt.Sprintf("%s/v1/chat/fs/%d/messages/%d/replies?page=%d&per_page=%d&shop_id=%d", opts.APIURL, opts.FsID, params.MsgID, params.Page, params.PerPage, opts.ShopID)
 	req, err := http.NewRequest(http.MethodGet, urlParam, nil)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+opts.token)
+	req.Header.Add("Authorization", "Bearer "+opts.Token)
 	req.Header.Add("Accept", "application/json")
 
 	isDone := false

@@ -1,27 +1,33 @@
 package main
 
 import (
-	"context"
-	"log"
+	"net/url"
+	"os"
+	"strconv"
 
-	"github.com/apsyadira-jubelio/go-marketplace-sdk/lazada"
+	"github.com/apsyadira-jubelio/go-marketplace-sdk/shopee"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )
 
 func main() {
 	godotenv.Load()
-
-	appKey := ""
-	appSecret := ""
 	// playground
-	client := lazada.NewClient(appKey, appSecret, lazada.Indonesia)
-	client.NewTokenClient("")
-	resp, err := client.Media.GetVideo(context.Background(), &lazada.GetVideoParameter{
-		VideoID: "3026611400",
-	})
-	if err != nil {
-		log.Fatal(err)
+	partnerID, _ := strconv.Atoi(os.Getenv("SHOPEE_PARTNER_ID"))
+	// shopID, _ := strconv.Atoi(os.Getenv("SHOP_ID"))
+	APIURL, _ := url.Parse("https://partner.shopeemobile.com")
+
+	appConfig := shopee.AppConfig{
+		PartnerID:    partnerID,
+		PartnerKey:   os.Getenv("SHOPEE_PARTNER_KEY"),
+		RedirectURL:  "",
+		APIURL:       APIURL.String(),
+		EnableSocks5: true,
+		SockAddress:  os.Getenv("SOCKS_ADDRESS"),
 	}
-	spew.Dump(resp)
+
+	spew.Dump(appConfig)
+	client := shopee.NewClient(appConfig, shopee.WithRetry(3), shopee.WithSocks5(os.Getenv("SOCKS_ADDRESS")))
+	spew.Dump(client)
+
 }

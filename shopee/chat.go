@@ -1,11 +1,25 @@
 package shopee
 
+import (
+	"crypto/tls"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"time"
+)
+
 type ChatService interface {
 	GetMessage(shopID uint64, token string, params GetMessageParamsRequest) (*GetMessageResponse, error)
 	GetConversationList(shopID uint64, token string, params GetConversationParamsRequest) (*GetConversationResponse, error)
 	GetOneConversation(shopID uint64, token string, params GetMessageParamsRequest) (*GetDetailConversation, error)
 	SendMessage(shopID uint64, token string, request SendMessageRequest) (*GetSendMessageResponse, error)
 	UploadImage(shopID uint64, token string, filename string) (*UploadImageResponse, error)
+	GetStickerPack() (*StickerPacksResponse, error)
+	GetListStickerByPID(stickerPackageID string) (*ListStickerByPID, error)
+	GetStickerByPIDAndSID(stickerPackageID, stickerID string) string
 }
 
 type GetMessageParamsRequest struct {
@@ -223,4 +237,132 @@ func (s *ChatServiceOp) GetOneConversation(shopID uint64, token string, params G
 	resp := new(GetDetailConversation)
 	err := s.client.WithShop(uint64(shopID), token).Get(path, resp, params)
 	return resp, err
+}
+
+type StickerPacksResponse struct {
+	Packs []Packs `json:"packs"`
+}
+type Packs struct {
+	Md5 string   `json:"md5"`
+	Pid string   `json:"pid"`
+	Reg []string `json:"reg"`
+}
+
+func (s *ChatServiceOp) GetStickerPack() (*StickerPacksResponse, error) {
+	var client = &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+		Timeout: 30 * time.Second,
+	}
+
+	url := "https://deo.shopeemobile.com/shopee/shopee-sticker-live-id/manifest.json"
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		respBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Printf("Error reading body, cause: %+v\n", err)
+			return nil, err
+		}
+		log.Println("response:", map[string]interface{}{
+			"body": string(respBytes),
+			"code": resp.StatusCode,
+		})
+		return nil, errors.New("response not ok")
+	}
+	defer resp.Body.Close()
+
+	var response StickerPacksResponse
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Error reading body, cause: %+v\n", err)
+		return nil, err
+	}
+	if err := json.Unmarshal(respBytes, &response); err != nil {
+		log.Printf("Error unmarshaling response, cause: %+v\n", err)
+		log.Println("Response:", string(respBytes))
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+type ListStickerByPID struct {
+	AutoDownload bool       `json:"auto_download"`
+	Locales      []string   `json:"locales"`
+	Size         []int      `json:"size"`
+	Stickers     []Stickers `json:"stickers"`
+}
+type Stickers struct {
+	Ext  string   `json:"ext"`
+	Name []string `json:"name"`
+	Sid  string   `json:"sid"`
+}
+
+func (s *ChatServiceOp) GetListStickerByPID(stickerPackageID string) (*ListStickerByPID, error) {
+	var client = &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+		Timeout: 30 * time.Second,
+	}
+
+	url := fmt.Sprintf("https://deo.shopeemobile.com/shopee/shopee-sticker-live-id/packs/%s/%s.json", stickerPackageID, stickerPackageID)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		respBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Printf("Error reading body, cause: %+v\n", err)
+			return nil, err
+		}
+		log.Println("response:", map[string]interface{}{
+			"body": string(respBytes),
+			"code": resp.StatusCode,
+		})
+		return nil, errors.New("response not ok")
+	}
+	defer resp.Body.Close()
+
+	var response ListStickerByPID
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Error reading body, cause: %+v\n", err)
+		return nil, err
+	}
+	if err := json.Unmarshal(respBytes, &response); err != nil {
+		log.Printf("Error unmarshaling response, cause: %+v\n", err)
+		log.Println("Response:", string(respBytes))
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+func (s *ChatServiceOp) GetStickerByPIDAndSID(stickerPackageID, stickerID string) string {
+	filename := fmt.Sprintf("https://deo.shopeemobile.com/shopee/shopee-sticker-live-id/packs/%s/%s@1x.png", stickerPackageID, stickerID)
+	return filename
 }

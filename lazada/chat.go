@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -338,4 +339,30 @@ func (m *ChatService) SendMessage(ctx context.Context, opts *SendMessageParams) 
 	json.Unmarshal([]byte(jsonData), &res)
 
 	return res, nil
+}
+
+type GetListStickerResponse struct {
+	Tab1 []Tab `json:"tab1"`
+	Tab2 []Tab `json:"tab2"`
+	Tab3 []Tab `json:"tab3"`
+}
+type Tab struct {
+	Txt         string `json:"txt"`
+	ImgURL      string `json:"imgUrl"`
+	SmallImgURL string `json:"smallImgUrl"`
+}
+
+func (m *ChatService) GetListSticker() (*GetListStickerResponse, error) {
+	jsonBytes, err := os.ReadFile("lazada/sticker-list.json")
+	if err != nil {
+		return nil, err
+	}
+
+	var response GetListStickerResponse
+	err = json.Unmarshal(jsonBytes, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }

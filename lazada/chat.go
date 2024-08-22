@@ -300,16 +300,18 @@ type SendMessageResponse struct {
 }
 
 type SendMessageParams struct {
-	SessionID   string `url:"session_id" json:"session_id"`
-	TemplateID  int    `url:"template_id" json:"template_id"`
-	Txt         string `url:"txt,omitempty" json:"txt"`
-	ImgUrl      string `url:"img_url,omitempty"`
-	Width       string `url:"width,omitempty"`
-	Height      string `url:"height,omitempty"`
-	OrderId     string `url:"order_id,omitempty"`
-	ItemId      string `url:"item_id,omitempty"`
-	PromotionID string `url:"promotion_id,omitempty"`
-	VideoId     string `url:"video_id,omitempty"`
+	SessionID     string `url:"session_id" json:"session_id"`
+	TemplateID    int    `url:"template_id" json:"template_id"`
+	Txt           string `url:"txt,omitempty" json:"txt"`
+	ImgUrl        string `url:"img_url,omitempty"`
+	Width         string `url:"width,omitempty"`
+	Height        string `url:"height,omitempty"`
+	OrderId       string `url:"order_id,omitempty"`
+	ItemId        string `url:"item_id,omitempty"`
+	PromotionID   string `url:"promotion_id,omitempty"`
+	VideoId       string `url:"video_id,omitempty"`
+	ImgURLSticker string `url:"imgUrl" json:"imgUrl"`
+	SmallImgURL   string `url:"smallImgUrl" json:"smallImgUrl"`
 }
 
 // ReadSendMessageSession is a method on the ChatService struct. It sends a request to the server to send message to specific sessionID.

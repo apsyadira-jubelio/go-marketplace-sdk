@@ -77,11 +77,12 @@ type LatestMessage struct {
 	Type       string  `json:"type"`
 }
 type Participants struct {
-	Avatar   string `json:"avatar"`
-	ImUserID string `json:"im_user_id"`
-	Nickname string `json:"nickname"`
-	Role     string `json:"role"`
-	UserID   string `json:"user_id"`
+	Avatar        string `json:"avatar"`
+	ImUserID      string `json:"im_user_id"`
+	Nickname      string `json:"nickname"`
+	Role          string `json:"role"`
+	UserID        string `json:"user_id"`
+	BuyerPlatform string `json:"buyer_platform"`
 }
 type Conversations struct {
 	CanSendMessage   bool           `json:"can_send_message"`

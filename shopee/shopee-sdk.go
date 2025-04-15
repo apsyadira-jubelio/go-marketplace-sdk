@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
+
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -148,7 +148,7 @@ type RateLimitError struct {
 // Creates an API request. A relative URL can be provided in urlStr, which will
 // be resolved to the BaseURL of the Client. Relative URLS should always be
 // specified without a preceding slash. If specified, the value pointed to by
-// body is JSON encoded and included as the request body.
+// body is JSON encoded and included as the request body and it's ok.
 func (c *ShopeeClient) NewRequest(method, relPath string, body, options, headers interface{}) (*http.Request, error) {
 	rel, err := url.Parse(relPath)
 	if err != nil {
@@ -266,7 +266,7 @@ func (c *ShopeeClient) doGetHeaders(req *http.Request, v interface{}, skipBody b
 		resp, err = c.Client.Do(req)
 		c.logResponse(resp)
 		if err != nil {
-			return nil, err //http client errors, not api responses
+			return nil, err // http client errors, not api responses
 		}
 
 		respErr := CheckResponseError(resp)
@@ -346,11 +346,11 @@ func (c *ShopeeClient) logBody(body *io.ReadCloser, format string) {
 	if body == nil || *body == nil {
 		return
 	}
-	b, _ := ioutil.ReadAll(*body)
+	b, _ := io.ReadAll(*body)
 	if len(b) > 0 {
 		c.log.Debugf(format, string(b))
 	}
-	*body = ioutil.NopCloser(bytes.NewBuffer(b))
+	*body = io.NopCloser(bytes.NewBuffer(b))
 }
 
 func wrapSpecificError(r *http.Response, err ResponseError) error {
@@ -385,14 +385,14 @@ func CheckResponseError(r *http.Response) error {
 		Message string `json:"message"`
 	}{}
 
-	bodyBytes, err := ioutil.ReadAll(r.Body)
+	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		return err
 	}
 
 	defer func() {
 		// already read out, reload for next process
-		r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 	}()
 
 	if len(bodyBytes) > 0 {

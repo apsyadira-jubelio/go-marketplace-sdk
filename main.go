@@ -5,7 +5,6 @@ import (
 	"net/url"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/apsyadira-jubelio/go-marketplace-sdk/shopee"
 	"github.com/davecgh/go-spew/spew"
@@ -30,13 +29,34 @@ func main() {
 
 	spew.Dump(appConfig)
 	client := shopee.NewClient(appConfig, shopee.WithRetry(3), shopee.WithSocks5(os.Getenv("SOCKS_ADDRESS")))
-	arrOrderID := make([]string, 0)
-	batch, err := client.Order.GetOrderDetailByOrderSN(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetOrderDetailParamsRequest{
-		OrderSNList: strings.Join(arrOrderID, ","),
+	conversation, err := client.Chat.GetOneConversation(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetMessageParamsRequest{
+		// Offset: "0",
+		// PageSize: 5,
+		ConversationID: 419812330742606495,
 	})
-
 	if err != nil {
 		log.Fatal(err)
+		return // Consider handling errors differently if partial results are acceptable
 	}
-	spew.Dump(batch)
+	spew.Dump(conversation)
+
+	readMessage, err := client.Chat.ReadConversation(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.ReadMessageRequest{
+		ConversationID:    419812330742606495,
+		BusinessType:      0,
+		LastReadMessageID: "-",
+	})
+	if err != nil {
+		log.Println("error while req to readMessage:", err)
+	}
+
+	spew.Dump(readMessage)
+	unreadMessage, err := client.Chat.UnreadConversation(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.UnreadMessageRequest{
+		ConversationID: 419812330742606495,
+		BusinessType:   0,
+	})
+	if err != nil {
+		log.Println("error while req to unreadMessage:", err)
+	}
+
+	spew.Dump(unreadMessage)
 }

@@ -1,11 +1,13 @@
 package shopee
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -35,5 +37,51 @@ func StructToMap(in interface{}) (map[string]interface{}, error) {
 	if err := json.Unmarshal(byts, &res); err != nil {
 		return nil, fmt.Errorf("error to perpare request body 1: %s", err)
 	}
+
+	if v, ok := in.(ReadMessageRequest); ok {
+		dec := json.NewDecoder(bytes.NewReader([]byte(v.ConversationID)))
+		dec.UseNumber()
+		if err := dec.Decode(&v.ConversationID); err != nil {
+			log.Println("error decode")
+			return nil, err
+		}
+
+		res["conversation_id"], _ = v.ConversationID.Int64()
+	}
+
+	if v, ok := in.(UnreadMessageRequest); ok {
+		dec := json.NewDecoder(bytes.NewReader([]byte(v.ConversationID)))
+		dec.UseNumber()
+		if err := dec.Decode(&v.ConversationID); err != nil {
+			log.Println("error decode")
+			return nil, err
+		}
+
+		res["conversation_id"], _ = v.ConversationID.Int64()
+	}
+
+	if v, ok := in.(SendMessageRequest); ok {
+		dec := json.NewDecoder(bytes.NewReader([]byte(v.ToID)))
+		dec.UseNumber()
+		if err := dec.Decode(&v.ToID); err != nil {
+			log.Println("error decode")
+			return nil, err
+		}
+
+		// required
+		res["to_id"], _ = v.ToID.Int64()
+
+		if vItem, err := v.Content.ItemID.Float64(); err == nil && vItem > 0 {
+			decItemID := json.NewDecoder(bytes.NewReader([]byte(v.Content.ItemID)))
+			decItemID.UseNumber()
+			if err := decItemID.Decode(&v.Content.ItemID); err != nil {
+				log.Println("error decode")
+				return nil, err
+			}
+
+			res["item_id"], _ = v.Content.ItemID.Int64()
+		}
+	}
+
 	return res, nil
 }

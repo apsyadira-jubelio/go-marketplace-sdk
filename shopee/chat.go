@@ -9,6 +9,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 type ChatService interface {
@@ -157,18 +159,18 @@ type GetSendMessageDataResponse struct {
 }
 
 type SendMessageRequest struct {
-	ToID        int64              `json:"to_id"`
+	ToID        json.Number        `json:"to_id"`
 	MessageType string             `json:"message_type"`
 	Content     ContentSendMessage `json:"content"`
 }
 
 type ContentSendMessage struct {
-	Text             string `json:"text,omitempty"`
-	StickerID        string `json:"sticker_id,omitempty"`
-	StickerPackageID string `json:"sticker_package_id,omitempty"`
-	ImageURL         string `json:"image_url,omitempty"`
-	ItemID           int64  `json:"item_id,omitempty"`
-	OrderSN          string `json:"order_sn,omitempty"`
+	Text             string      `json:"text,omitempty"`
+	StickerID        string      `json:"sticker_id,omitempty"`
+	StickerPackageID string      `json:"sticker_package_id,omitempty"`
+	ImageURL         string      `json:"image_url,omitempty"`
+	ItemID           json.Number `json:"item_id,omitempty"`
+	OrderSN          string      `json:"order_sn,omitempty"`
 }
 
 func (s *ChatServiceOp) SendMessage(shopID uint64, token string, request SendMessageRequest) (*GetSendMessageResponse, error) {
@@ -375,9 +377,9 @@ type ReadMessageResponse struct {
 }
 
 type ReadMessageRequest struct {
-	ConversationID    int    `json:"conversation_id"`
-	LastReadMessageID string `json:"last_read_message_id"`
-	BusinessType      int32  `json:"business_type,omitempty"`
+	ConversationID    json.Number `json:"conversation_id"`
+	LastReadMessageID string      `json:"last_read_message_id"`
+	BusinessType      int32       `json:"business_type,omitempty"`
 }
 
 // ReadConversation for read message from buyer by last_read_message_id from response get message
@@ -387,6 +389,7 @@ func (s *ChatServiceOp) ReadConversation(shopID uint64, token string, request Re
 	if err != nil {
 		return nil, err
 	}
+	spew.Dump(req)
 	resp := new(ReadMessageResponse)
 	err = s.client.WithShop(uint64(shopID), token).Post(path, req, resp)
 	return resp, err
@@ -398,8 +401,8 @@ type UnreadMessageResponse struct {
 }
 
 type UnreadMessageRequest struct {
-	ConversationID int64 `json:"conversation_id"`
-	BusinessType   int32 `json:"business_type,omitempty"` // not required, 0 is for seller buyer chat, 11 is for seller affiliate chat
+	ConversationID json.Number `json:"conversation_id"`
+	BusinessType   int32       `json:"business_type,omitempty"` // not required, 0 is for seller buyer chat, 11 is for seller affiliate chat
 }
 
 // UnreadConversation for mark a conversation from buyer as unread

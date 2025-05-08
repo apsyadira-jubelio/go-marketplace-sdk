@@ -9,8 +9,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 type ChatService interface {
@@ -389,7 +387,7 @@ func (s *ChatServiceOp) ReadConversation(shopID uint64, token string, request Re
 	if err != nil {
 		return nil, err
 	}
-	spew.Dump(req)
+
 	resp := new(ReadMessageResponse)
 	err = s.client.WithShop(uint64(shopID), token).Post(path, req, resp)
 	return resp, err

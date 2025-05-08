@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 
 	"mime/multipart"
 	"net/http"
@@ -56,6 +57,7 @@ type ShopeeClient struct {
 	Order       OrderService
 	Shop        ShopService
 	Voucher     VoucherService
+	Logistic    LogisticService
 }
 
 // A general response error
@@ -87,6 +89,7 @@ func NewClient(app AppConfig, opts ...Option) *ShopeeClient {
 	c.Order = &OrderServiceOp{client: c}
 	c.Shop = &ShopServiceOp{client: c}
 	c.Voucher = &VoucherServiceOp{client: c}
+	c.Logistic = &LogisticServiceOp{client: c}
 
 	// apply any options
 	for _, opt := range opts {
@@ -458,6 +461,7 @@ func (c *ShopeeClient) createAndDoGetHeaders(method, relPath string, data, optio
 	if err != nil {
 		return nil, err
 	}
+	log.Println("url:", req.URL)
 
 	return c.doGetHeaders(req, resource, false)
 }

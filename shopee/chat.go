@@ -20,6 +20,8 @@ type ChatService interface {
 	GetStickerPack() (*StickerPacksResponse, error)
 	GetListStickerByPID(stickerPackageID string) (*ListStickerByPID, error)
 	GetStickerByPIDAndSID(stickerPackageID, stickerID string) string
+	ReadConversation(shopID uint64, token string, params ReadMessageRequest) (*ReadMessageResponse, error)
+	UnreadConversation(shopID uint64, token string, request UnreadMessageRequest) (*UnreadMessageResponse, error)
 }
 
 type GetMessageParamsRequest struct {
@@ -155,18 +157,18 @@ type GetSendMessageDataResponse struct {
 }
 
 type SendMessageRequest struct {
-	ToID        int64              `json:"to_id"`
+	ToID        json.Number        `json:"to_id"`
 	MessageType string             `json:"message_type"`
 	Content     ContentSendMessage `json:"content"`
 }
 
 type ContentSendMessage struct {
-	Text             string `json:"text,omitempty"`
-	StickerID        string `json:"sticker_id,omitempty"`
-	StickerPackageID string `json:"sticker_package_id,omitempty"`
-	ImageURL         string `json:"image_url,omitempty"`
-	ItemID           int64  `json:"item_id,omitempty"`
-	OrderSN          string `json:"order_sn,omitempty"`
+	Text             string      `json:"text,omitempty"`
+	StickerID        string      `json:"sticker_id,omitempty"`
+	StickerPackageID string      `json:"sticker_package_id,omitempty"`
+	ImageURL         string      `json:"image_url,omitempty"`
+	ItemID           json.Number `json:"item_id,omitempty"`
+	OrderSN          string      `json:"order_sn,omitempty"`
 }
 
 func (s *ChatServiceOp) SendMessage(shopID uint64, token string, request SendMessageRequest) (*GetSendMessageResponse, error) {
@@ -365,4 +367,50 @@ func (s *ChatServiceOp) GetListStickerByPID(stickerPackageID string) (*ListStick
 func (s *ChatServiceOp) GetStickerByPIDAndSID(stickerPackageID, stickerID string) string {
 	filename := fmt.Sprintf("https://deo.shopeemobile.com/shopee/shopee-sticker-live-id/packs/%s/%s@1x.png", stickerPackageID, stickerID)
 	return filename
+}
+
+type ReadMessageResponse struct {
+	BaseResponse
+	Response any `json:"response"`
+}
+
+type ReadMessageRequest struct {
+	ConversationID    json.Number `json:"conversation_id"`
+	LastReadMessageID string      `json:"last_read_message_id"`
+	BusinessType      int32       `json:"business_type,omitempty"`
+}
+
+// ReadConversation for read message from buyer by last_read_message_id from response get message
+func (s *ChatServiceOp) ReadConversation(shopID uint64, token string, request ReadMessageRequest) (*ReadMessageResponse, error) {
+	path := "/sellerchat/read_conversation"
+	req, err := StructToMap(request)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := new(ReadMessageResponse)
+	err = s.client.WithShop(uint64(shopID), token).Post(path, req, resp)
+	return resp, err
+}
+
+type UnreadMessageResponse struct {
+	BaseResponse
+	Response any `json:"response"`
+}
+
+type UnreadMessageRequest struct {
+	ConversationID json.Number `json:"conversation_id"`
+	BusinessType   int32       `json:"business_type,omitempty"` // not required, 0 is for seller buyer chat, 11 is for seller affiliate chat
+}
+
+// UnreadConversation for mark a conversation from buyer as unread
+func (s *ChatServiceOp) UnreadConversation(shopID uint64, token string, request UnreadMessageRequest) (*UnreadMessageResponse, error) {
+	path := "/sellerchat/unread_conversation"
+	resp := new(UnreadMessageResponse)
+	req, err := StructToMap(request)
+	if err != nil {
+		return nil, err
+	}
+	err = s.client.WithShop(uint64(shopID), token).Post(path, req, resp)
+	return resp, err
 }

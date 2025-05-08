@@ -45,11 +45,12 @@ type TiktokClient struct {
 	AccessToken string
 	ShopID      string
 
-	Auth    AuthService
-	Util    UtilService
-	Chat    ChatService
-	Order   OrderService
-	Product ProductService
+	Auth        AuthService
+	Util        UtilService
+	Chat        ChatService
+	Order       OrderService
+	Product     ProductService
+	Fulfillment FulfillmentService
 }
 
 type CommonParamRequest struct {
@@ -77,6 +78,7 @@ func NewClient(app AppConfig, opts ...Option) *TiktokClient {
 	c.Chat = &ChatServiceOp{client: c}
 	c.Order = &OrderServiceOp{client: c}
 	c.Product = &ProductServiceOp{client: c}
+	c.Fulfillment = &FulfillmentServiceOp{client: c}
 
 	// apply any options
 	for _, opt := range opts {

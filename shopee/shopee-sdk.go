@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 
 	"mime/multipart"
 	"net/http"
@@ -461,7 +460,6 @@ func (c *ShopeeClient) createAndDoGetHeaders(method, relPath string, data, optio
 	if err != nil {
 		return nil, err
 	}
-	log.Println("url:", req.URL)
 
 	return c.doGetHeaders(req, resource, false)
 }

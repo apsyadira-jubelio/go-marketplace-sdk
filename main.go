@@ -1,9 +1,10 @@
 package main
 
 import (
+	"context"
 	"log"
 
-	"github.com/apsyadira-jubelio/go-marketplace-sdk/tiktok"
+	"github.com/apsyadira-jubelio/go-marketplace-sdk/lazada"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )
@@ -11,19 +12,17 @@ import (
 func main() {
 	godotenv.Load()
 
-	// appKey := ""
-	// appSecret := ""
+	appKey := ""
+	appSecret := ""
 	// playground
-	client := tiktok.NewClient(tiktok.AppConfig{
-		AppKey:    "",
-		AppSecret: "",
-		APIURL:    tiktok.OpenAPIURL,
-		Version:   "202309",
-	}, tiktok.WithRetry(3))
-	client.AccessToken = ""
-	client.ShopCipher = ""
-	client.ShopID = ""
-	resp, err := client.Chat.ReadMessageConversationID("")
+	client := lazada.NewClient(appKey, appSecret, lazada.Indonesia)
+	client.NewTokenClient("")
+	resp, err := client.Chat.SendMessage(context.Background(), &lazada.SendMessageParams{
+		SessionID:  "",
+		TemplateID: lazada.EmojiMessage,
+		Txt:        "[bye]",
+		ImgUrl:     "https://sg-live.slatic.net/other/im/2a693f4624ae1491d6ba5743fd8a3ee9.gif",
+	})
 	if err != nil {
 		log.Fatal(err)
 	}

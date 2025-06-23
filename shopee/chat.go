@@ -157,9 +157,11 @@ type GetSendMessageDataResponse struct {
 }
 
 type SendMessageRequest struct {
-	ToID        json.Number        `json:"to_id"`
-	MessageType string             `json:"message_type"`
-	Content     ContentSendMessage `json:"content"`
+	ToID           json.Number        `json:"to_id"`
+	MessageType    string             `json:"message_type"`
+	Content        ContentSendMessage `json:"content"`
+	BusinessType   int8               `json:"business_type,omitempty"`
+	ConversationID int64              `json:"conversation_id,omitempty"`
 }
 
 type ContentSendMessage struct {

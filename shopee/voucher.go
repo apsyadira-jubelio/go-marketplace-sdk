@@ -2,11 +2,17 @@ package shopee
 
 type VoucherService interface {
 	GetListVoucherByStatus(shopID uint64, token string, params GetVoucherListParam) (*GetVoucherListResponse, error)
+	GetDetailVoucher(shopID uint64, token string, params GetDetailVoucherParam) (any, error)
 }
+
 type GetVoucherListParam struct {
 	PageNo   int    `url:"page_no"`
 	PageSize int    `url:"page_size"`
 	Status   string `url:"status"` // required. Available value: upcoming/ongoing/expired/all.
+}
+
+type GetDetailVoucherParam struct {
+	VoucherID int64 `url:"voucher_id"`
 }
 
 type GetVoucherListResponse struct {
@@ -43,8 +49,14 @@ type VoucherServiceOp struct {
 
 func (v *VoucherServiceOp) GetListVoucherByStatus(shopID uint64, token string, params GetVoucherListParam) (*GetVoucherListResponse, error) {
 	path := "/voucher/get_voucher_list"
-
 	resp := new(GetVoucherListResponse)
+	err := v.client.WithShop(uint64(shopID), token).Get(path, resp, params)
+	return resp, err
+}
+
+func (v *VoucherServiceOp) GetDetailVoucher(shopID uint64, token string, params GetDetailVoucherParam) (any, error) {
+	path := "/voucher/get_voucher"
+	resp := new(any)
 	err := v.client.WithShop(uint64(shopID), token).Get(path, resp, params)
 	return resp, err
 }

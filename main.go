@@ -8,9 +8,10 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/apsyadira-jubelio/go-marketplace-sdk/shopee"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
+
+	"github.com/apsyadira-jubelio/go-marketplace-sdk/shopee"
 )
 
 func main() {
@@ -31,47 +32,9 @@ func main() {
 
 	spew.Dump(appConfig)
 	client := shopee.NewClient(appConfig, shopee.WithRetry(3), shopee.WithSocks5(os.Getenv("SOCKS_ADDRESS")))
-	// resp, err := client.Product.GetProductlList(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetProductListParamRequest{
-	// 	PageSize:   100,
-	// 	Offset:     0,
-	// 	ItemStatus: "NORMAL",
-	// })
 
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// itemsID := make([]int, 0, resp.Response.TotalCount)
-	// for _, item := range resp.Response.Item {
-	// 	itemsID = append(itemsID, int(item.ItemID))
-	// }
-
-	// Function to batch get product details
-	// getProductDetailsInBatches := func(ids []int) ([]shopee.ItemListData, error) {
-	// 	var products []shopee.ItemListData
-	// 	batchSize := 50
-
-	// 	for i := 0; i < len(ids); i += batchSize {
-	// 		end := i + batchSize
-	// 		if end > len(ids) {
-	// 			end = len(ids)
-	// 		}
-	// 		batch, err := client.Product.GetProductById(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetProductParamRequest{
-	// 			ItemIDList: ids[i:end],
-	// 		})
-	// 		if err != nil {
-	// 			return nil, err // Consider handling errors differently if partial results are acceptable
-	// 		}
-	// 		products = append(products, batch.Response.ItemList...)
-	// 	}
-
-	// 	return products, nil
-	// }
-
-	conversation, err := client.Chat.GetMessage(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetMessageParamsRequest{
-		Offset:         "0",
-		PageSize:       25,
-		ConversationID: 148359900735335071,
+	conversation, err := client.Voucher.GetDetailVoucher(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetDetailVoucherParam{
+		VoucherID: 0,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -79,11 +42,10 @@ func main() {
 	}
 
 	spew.Dump(conversation)
-	writeJSONFile(conversation, "get-messages-2")
+	writeJSONFile(conversation, "voucher-detail-response-2")
 }
 
 func writeJSONFile(response interface{}, filename string) error {
-
 	// Create a new JSON file
 	file, err := os.Create(fmt.Sprintf("%s.json", filename))
 	if err != nil {

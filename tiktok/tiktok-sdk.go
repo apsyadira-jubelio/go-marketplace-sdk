@@ -8,10 +8,9 @@ import (
 	"fmt"
 	"io"
 	"mime"
-	"sort"
-
 	"net/http"
 	"net/url"
+	"sort"
 	"time"
 )
 
@@ -51,6 +50,7 @@ type TiktokClient struct {
 	Order       OrderService
 	Product     ProductService
 	Fulfillment FulfillmentService
+	Promotion   PromotionService
 }
 
 type CommonParamRequest struct {
@@ -79,6 +79,7 @@ func NewClient(app AppConfig, opts ...Option) *TiktokClient {
 	c.Order = &OrderServiceOp{client: c}
 	c.Product = &ProductServiceOp{client: c}
 	c.Fulfillment = &FulfillmentServiceOp{client: c}
+	c.Promotion = &PromotionServiceOp{client: c}
 
 	// apply any options
 	for _, opt := range opts {

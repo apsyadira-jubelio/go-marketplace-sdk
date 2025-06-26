@@ -76,6 +76,7 @@ type ContentMessage struct {
 	ItemID           int64         `json:"item_id,omitempty"`
 	OrderID          int64         `json:"order_id,omitempty"`
 	VideoURL         string        `json:"video_url,omitempty"`
+	ImageURL         string        `json:"image_url,omitempty"`
 	SourceContent    SourceContent `json:"source_content,omitempty"`
 }
 

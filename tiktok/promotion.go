@@ -1,7 +1,9 @@
 package tiktok
 
+import "fmt"
+
 type PromotionService interface {
-	SearchCoupons(body SearchCouponsBody) (*SearchCouponsResponse, error)
+	SearchCoupons(pageSize int, pageToken string, body SearchCouponsBody) (*SearchCouponsResponse, error)
 }
 
 type PromotionServiceOp struct {
@@ -87,8 +89,11 @@ type DataCoupon struct {
 	Coupons       []Coupons `json:"coupons"`
 }
 
-func (s *PromotionServiceOp) SearchCoupons(body SearchCouponsBody) (*SearchCouponsResponse, error) {
-	path := "/promotion/202406/coupons/search?page_size=100"
+func (s *PromotionServiceOp) SearchCoupons(pageSize int, pageToken string, body SearchCouponsBody) (*SearchCouponsResponse, error) {
+	path := fmt.Sprintf("/promotion/202406/coupons/search?page_size=%d", pageSize)
+	if pageToken != "" {
+		path += fmt.Sprintf("&page_token=%s", pageToken)
+	}
 	resp := new(SearchCouponsResponse)
 	err := s.client.Post(path, body, resp)
 	return resp, err

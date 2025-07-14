@@ -114,6 +114,14 @@ const (
 	TypeMessageOrder     = "ORDER_CARD"
 	TypeMessageVideo     = "VIDEO"
 	TypeMessageEmoticons = "EMOTICONS"
+	/*
+		Note: Coupons that can be sent in  a message must meet all the following conditions:
+		1. display_type==CHAT or display_type==REGULAR
+		2. status==ONGOING
+		3. creation_source==SELLER_CENTER
+		4. target_buyer_segment!=REPEAT_CUSTOMERS
+	*/
+	TypeMessageCoupon = "COUPON_CARD"
 )
 
 type SendMessageToConversationIDReq struct {

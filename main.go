@@ -33,8 +33,10 @@ func main() {
 	spew.Dump(appConfig)
 	client := shopee.NewClient(appConfig, shopee.WithRetry(3), shopee.WithSocks5(os.Getenv("SOCKS_ADDRESS")))
 
-	conversation, err := client.Voucher.GetDetailVoucher(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetDetailVoucherParam{
-		VoucherID: 0,
+	conversation, err := client.Voucher.GetListVoucherByStatus(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetVoucherListParam{
+		PageNo:   1,
+		PageSize: 25,
+		Status:   "ongoing",
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -42,7 +44,7 @@ func main() {
 	}
 
 	spew.Dump(conversation)
-	writeJSONFile(conversation, "voucher-detail-response-2")
+	writeJSONFile(conversation, "voucher-list")
 }
 
 func writeJSONFile(response interface{}, filename string) error {

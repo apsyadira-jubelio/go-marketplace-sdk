@@ -166,12 +166,23 @@ type SendMessageRequest struct {
 }
 
 type ContentSendMessage struct {
-	Text             string      `json:"text,omitempty"`
-	StickerID        string      `json:"sticker_id,omitempty"`
-	StickerPackageID string      `json:"sticker_package_id,omitempty"`
-	ImageURL         string      `json:"image_url,omitempty"`
-	ItemID           json.Number `json:"item_id,omitempty"`
-	OrderSN          string      `json:"order_sn,omitempty"`
+	Text string `json:"text,omitempty"`
+	// sticker
+	StickerID        string `json:"sticker_id,omitempty"`
+	StickerPackageID string `json:"sticker_package_id,omitempty"`
+	// image
+	ImageURL string `json:"image_url,omitempty"`
+	// voucher
+	VoucherID   string `json:"voucher_id,omitempty"`
+	VoucherCode string `json:"voucher_code,omitempty"`
+	// video
+	Vid             int32  `json:"vid,omitempty"`
+	VideoURL        string `json:"video_url,omitempty"`
+	DurationSeconds int32  `json:"duration_seconds,omitempty"`
+	// product
+	ItemID json.Number `json:"item_id,omitempty"`
+	// order
+	OrderSN string `json:"order_sn,omitempty"`
 }
 
 func (s *ChatServiceOp) SendMessage(shopID uint64, token string, request SendMessageRequest) (*GetSendMessageResponse, error) {

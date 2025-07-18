@@ -4,6 +4,7 @@ import "fmt"
 
 type PromotionService interface {
 	SearchCoupons(pageSize int, pageToken string, body SearchCouponsBody) (*SearchCouponsResponse, error)
+	GetCoupon(id string) (*GetCouponResponse, error)
 }
 
 type PromotionServiceOp struct {
@@ -96,5 +97,45 @@ func (s *PromotionServiceOp) SearchCoupons(pageSize int, pageToken string, body 
 	}
 	resp := new(SearchCouponsResponse)
 	err := s.client.Post(path, body, resp)
+	return resp, err
+}
+
+type GetCouponResponse struct {
+	BaseResponse
+	Data DataDetailCoupon `json:"data"`
+}
+
+type UsageStats struct {
+	ClaimedCount  int `json:"claimed_count"`
+	RedeemedCount int `json:"redeemed_count"`
+}
+
+type CouponDetail struct {
+	ClaimDuration      ClaimDuration      `json:"claim_duration"`
+	CreateTime         int64              `json:"create_time"`
+	CreationSource     string             `json:"creation_source"`
+	Discount           Discount           `json:"discount"`
+	DisplayChannels    []string           `json:"display_channels"`
+	DisplayType        string             `json:"display_type"`
+	ID                 string             `json:"id"`
+	ProductScope       string             `json:"product_scope"`
+	RedemptionDuration RedemptionDuration `json:"redemption_duration"`
+	Status             string             `json:"status"`
+	TargetBuyerSegment string             `json:"target_buyer_segment"`
+	Threshold          Threshold          `json:"threshold"`
+	Title              string             `json:"title"`
+	UpdateTime         int64              `json:"update_time"`
+	UsageLimits        UsageLimits        `json:"usage_limits"`
+	UsageStats         UsageStats         `json:"usage_stats"`
+}
+
+type DataDetailCoupon struct {
+	Coupon CouponDetail `json:"coupon"`
+}
+
+func (s *PromotionServiceOp) GetCoupon(id string) (*GetCouponResponse, error) {
+	path := fmt.Sprintf("/promotion/202406/coupons/%s", id)
+	resp := new(GetCouponResponse)
+	err := s.client.Get(path, resp, nil)
 	return resp, err
 }

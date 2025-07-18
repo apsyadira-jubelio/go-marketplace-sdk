@@ -119,6 +119,7 @@ type CouponDetail struct {
 	DisplayType        string             `json:"display_type"`
 	ID                 string             `json:"id"`
 	ProductScope       string             `json:"product_scope"`
+	PromoCode          string             `json:"promo_code"`
 	RedemptionDuration RedemptionDuration `json:"redemption_duration"`
 	Status             string             `json:"status"`
 	TargetBuyerSegment string             `json:"target_buyer_segment"`

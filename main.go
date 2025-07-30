@@ -13,9 +13,6 @@ import (
 
 func main() {
 	godotenv.Load()
-
-	// appKey := ""
-	// appSecret := ""
 	// playground
 	client := tiktok.NewClient(tiktok.AppConfig{
 		AppKey:    "",
@@ -34,7 +31,7 @@ func main() {
 	writeJSONFile(resp, "response-get-detail-not-found-coupon")
 }
 
-func writeJSONFile(response interface{}, filename string) error {
+func writeJSONFile(response any, filename string) error {
 	// Create a new JSON file
 	file, err := os.Create(fmt.Sprintf("%s.json", filename))
 	if err != nil {

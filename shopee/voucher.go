@@ -2,7 +2,7 @@ package shopee
 
 type VoucherService interface {
 	GetListVoucherByStatus(shopID uint64, token string, params GetVoucherListParam) (*GetVoucherListResponse, error)
-	GetDetailVoucher(shopID uint64, token string, params GetDetailVoucherParam) (any, error)
+	GetDetailVoucher(shopID uint64, token string, params GetDetailVoucherParam) (*GetVoucherDetailResponse, error)
 }
 
 type GetVoucherListParam struct {
@@ -54,9 +54,36 @@ func (v *VoucherServiceOp) GetListVoucherByStatus(shopID uint64, token string, p
 	return resp, err
 }
 
-func (v *VoucherServiceOp) GetDetailVoucher(shopID uint64, token string, params GetDetailVoucherParam) (any, error) {
+type GetVoucherDetailResponse struct {
+	BaseResponse
+	Response DataVoucherDetail `json:"response"`
+}
+
+type DataVoucherDetail struct {
+	CurrentUsage       int    `json:"current_usage"`
+	DiscountAmount     int    `json:"discount_amount"`
+	DisplayChannelList []int  `json:"display_channel_list"`
+	DisplayStartTime   int    `json:"display_start_time"`
+	EndTime            int    `json:"end_time"`
+	IsAdmin            bool   `json:"is_admin"`
+	MaxPrice           int    `json:"max_price"`
+	MinBasketPrice     int    `json:"min_basket_price"`
+	Percentage         int    `json:"percentage"`
+	RewardType         int    `json:"reward_type"`
+	StartTime          int    `json:"start_time"`
+	TargetVoucher      int    `json:"target_voucher"`
+	UsageQuantity      int    `json:"usage_quantity"`
+	Usecase            int    `json:"usecase"`
+	VoucherCode        string `json:"voucher_code"`
+	VoucherID          int64  `json:"voucher_id"`
+	VoucherName        string `json:"voucher_name"`
+	VoucherPurpose     int    `json:"voucher_purpose"`
+	VoucherType        int    `json:"voucher_type"`
+}
+
+func (v *VoucherServiceOp) GetDetailVoucher(shopID uint64, token string, params GetDetailVoucherParam) (*GetVoucherDetailResponse, error) {
 	path := "/voucher/get_voucher"
-	resp := new(any)
+	resp := new(GetVoucherDetailResponse)
 	err := v.client.WithShop(uint64(shopID), token).Get(path, resp, params)
 	return resp, err
 }

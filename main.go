@@ -1,34 +1,44 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 
-	"github.com/apsyadira-jubelio/go-marketplace-sdk/tiktok"
+	"github.com/apsyadira-jubelio/go-marketplace-sdk/lazada"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )
 
 func main() {
 	godotenv.Load()
+
+	appKey := os.Getenv("LAZADA_APP_KEY")
+	appSecret := os.Getenv("LAZADA_APP_SECRET")
+	token := os.Getenv("LAZADA_TOKEN")
 	// playground
-	client := tiktok.NewClient(tiktok.AppConfig{
-		AppKey:    "",
-		AppSecret: "",
-		APIURL:    tiktok.OpenAPIURL,
-		Version:   "202309",
-	}, tiktok.WithRetry(3))
-	client.AccessToken = ""
-	client.ShopCipher = ""
-	client.ShopID = ""
-	resp, err := client.Promotion.GetCoupon("")
+	client := lazada.NewClient(appKey, appSecret, lazada.Indonesia)
+	client.NewTokenClient(token)
+
+	configLazada := map[string]string{
+		"appKey":    appKey,
+		"appSecret": appSecret,
+		"token":     token,
+	}
+
+	spew.Dump(configLazada)
+
+	resp, err := client.Voucher.GetVouchers(context.Background(), &lazada.GetVouchersParam{
+		CurPage:     "1",
+		VoucherType: "COLLECTIBLE_VOUCHER",
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
 	spew.Dump(resp)
-	writeJSONFile(resp, "response-get-detail-not-found-coupon")
+	writeJSONFile(resp, "response-list-voucher")
 }
 
 func writeJSONFile(response any, filename string) error {

@@ -38,12 +38,13 @@ type Client struct {
 	accessToken string
 
 	// The auth service used for making API calls related to authorization or OAuth
-	Auth    *AuthService
-	Chat    *ChatService
-	Product *ProductService
-	Order   *OrderService
-	Media   *MediaService
-	Voucher *VoucherService
+	Auth     *AuthService
+	Chat     *ChatService
+	Product  *ProductService
+	Order    *OrderService
+	Media    *MediaService
+	Voucher  *VoucherService
+	Logistic *LogisticService
 }
 
 type service struct {
@@ -100,6 +101,7 @@ func NewClient(appKey, secret string, region Region) *Client {
 	c.Order = (*OrderService)(&c.common)
 	c.Media = (*MediaService)(&c.common)
 	c.Voucher = (*VoucherService)(&c.common)
+	c.Logistic = (*LogisticService)(&c.common)
 	return c
 }
 

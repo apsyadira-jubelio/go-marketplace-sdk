@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"github.com/apsyadira-jubelio/go-marketplace-sdk/lazada"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )
 
@@ -22,23 +21,23 @@ func main() {
 	client := lazada.NewClient(appKey, appSecret, lazada.Indonesia)
 	client.NewTokenClient(token)
 
-	configLazada := map[string]string{
-		"appKey":    appKey,
-		"appSecret": appSecret,
-		"token":     token,
-	}
+	// resp, err := client.Order.GetOrders(context.Background(), &lazada.GetOrdersParam{
+	// 	CreatedAfter:  "2025-01-01T00:00:00Z",
+	// 	SortBy:        "created_at",
+	// 	SortDirection: "desc",
+	// 	Limit:         "100",
+	// 	Offset:        "0",
+	// 	Status:        "packed",
+	// })
 
-	spew.Dump(configLazada)
-
-	resp, err := client.Voucher.GetVouchers(context.Background(), &lazada.GetVouchersParam{
-		CurPage:     "1",
-		VoucherType: "COLLECTIBLE_VOUCHER",
+	resp, err := client.Logistic.GetOrderTrace(context.Background(), &lazada.GetOrderTraceParams{
+		OrderID: "2649549780800326",
 	})
+
 	if err != nil {
 		log.Fatal(err)
 	}
-	spew.Dump(resp)
-	writeJSONFile(resp, "response-list-voucher")
+	writeJSONFile(resp, "response-list-order")
 }
 
 func writeJSONFile(response any, filename string) error {

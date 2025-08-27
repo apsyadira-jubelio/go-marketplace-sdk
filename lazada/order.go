@@ -124,10 +124,14 @@ func (o *OrderService) GetMultipleOrdersItems(ctx context.Context, opts *GetMult
 }
 
 type GetOrdersParam struct {
-	Offset       string `url:"offset"`
-	Limit        string `url:"limit"`
-	CreatedAfter string `url:"created_after"` //RFC 3339 Format
-	SortBy       string `url:"sort_by,omitempty"`
+	Offset        string `url:"offset,omitempty"`
+	Limit         string `url:"limit,omitempty"`
+	CreatedAfter  string `url:"created_after,omitempty"` //RFC 3339 Format
+	UpdatedBefore string `url:"update_before,omitempty"` //RFC 3339 Format
+	UpdatedAfter  string `url:"update_after,omitempty"`  //RFC 3339 Format
+	SortBy        string `url:"sort_by,omitempty"`
+	SortDirection string `url:"sort_direction,omitempty"`
+	Status        string `url:"status,omitempty"`
 }
 
 type GetOrdersResponse struct {

@@ -140,7 +140,8 @@ func (c *TiktokClient) makeSignature(req *http.Request) string {
 	}
 
 	if c.AccessToken != "" {
-		query.Add("access_token", fmt.Sprintf("%v", c.AccessToken))
+		// query.Add("access_token", fmt.Sprintf("%v", c.AccessToken))
+		req.Header.Add("x-tts-access-token", c.AccessToken)
 	}
 
 	query.Add("app_key", c.appConfig.AppKey)

@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 
 	"mime/multipart"
 	"net/http"
@@ -89,7 +90,6 @@ func NewClient(app AppConfig, opts ...Option) *ShopeeClient {
 	c.Shop = &ShopServiceOp{client: c}
 	c.Voucher = &VoucherServiceOp{client: c}
 	c.Logistic = &LogisticServiceOp{client: c}
-
 	// apply any options
 	for _, opt := range opts {
 		opt(c)
@@ -254,7 +254,7 @@ func (c *ShopeeClient) makeSignature(req *http.Request) (string, int64) {
 }
 
 // doGetHeaders executes a request, decoding the response into `v` and also returns any response headers.
-func (c *ShopeeClient) doGetHeaders(req *http.Request, v interface{}, skipBody bool) (http.Header, error) {
+func (c *ShopeeClient) doGetHeaders(req *http.Request, v any, skipBody bool) (http.Header, error) {
 	var resp *http.Response
 	var err error
 
@@ -426,7 +426,7 @@ func CheckResponseError(r *http.Response) error {
 // certain situations.
 // If the data argument is non-nil, it will be used as the body of the request
 // for POST and PUT requests.
-func (c *ShopeeClient) CreateAndDo(method, relPath string, data, options, headers, resource interface{}) error {
+func (c *ShopeeClient) CreateAndDo(method, relPath string, data, options, headers, resource any) error {
 	defer func() {
 		// clear for next call
 		c.ShopID = 0
@@ -554,6 +554,7 @@ func (c *ShopeeClient) NewfileUploadRequest(relPath, paramName, filename string)
 	req.Header.Add("User-Agent", UserAgent)
 
 	c.makeSignature(req)
+	log.Println("print URL: ", req.URL)
 
 	return req, nil
 }

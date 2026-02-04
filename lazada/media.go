@@ -49,3 +49,44 @@ func (o *MediaService) GetVideo(ctx context.Context, opts *GetVideoParameter) (r
 
 	return res, nil
 }
+
+type InitCreateVideoParameter struct {
+	FileName  string `url:"fileName" json:"fileName"`
+	FileBytes string `url:"fileBytes" json:"fileBytes"`
+}
+
+type InitCreateVideoResponse struct {
+	UploadID      string `json:"upload_id"`
+	Code          string `json:"code"`
+	ResultMessage string `json:"result_message"`
+	Success       string `json:"success"`
+	ResultCode    string `json:"result_code"`
+	Title         string `json:"title"`
+	RequestID     string `json:"request_id"`
+}
+
+func (o *MediaService) InitCreateVideo(ctx context.Context, opts *GetVideoParameter) (res *GetVideoResponse, err error) {
+	u, err := addOptions(ApiNames["InitCreateVideo"], opts)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := o.client.NewRequest("POST", u, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := o.client.Do(ctx, req, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonData, err := json.Marshal(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	json.Unmarshal(jsonData, &res)
+
+	return res, nil
+}

@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"log"
 	"mime"
 	"net/http"
 	"net/url"
@@ -215,4 +216,39 @@ func (c *TiktokClient) generateSHA256(input, secret string) string {
 	}
 
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+type RequestUploadFile struct {
+	UploadToken string `json:"upload_token"`
+	ChunkNum    int    `json:"chunk_num"`
+	FileBytes   []byte `json:"file_bytes"`
+}
+
+func (c *TiktokClient) UploadFile(uploadURL string, body RequestUploadFile) (string, error) {
+
+	url := fmt.Sprintf("%s?app_key=%s&shop_cipher=%s&upload_token=%s&chunk_num=%d", uploadURL, c.appConfig.AppKey, c.ShopCipher, body.UploadToken, body.ChunkNum)
+
+	req, err := http.NewRequest("PUT", url, bytes.NewReader(body.FileBytes))
+	if err != nil {
+		return "", fmt.Errorf("error creating request: %w", err)
+	}
+	req.Header.Set("x-tts-access-token", c.AccessToken)
+	req.Header.Set("Content-Type", "video/mp4")
+	req.ContentLength = int64(len(body.FileBytes))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("error performing upload request: %w", err)
+	}
+	log.Println("upload URL check: ", resp.Request.URL)
+	defer resp.Body.Close()
+
+	respBody, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("upload failed. Status: %d. Body: %s", resp.StatusCode, string(respBody))
+	}
+
+	fmt.Println("Upload success. Response:", string(respBody))
+	return string(respBody), nil
 }

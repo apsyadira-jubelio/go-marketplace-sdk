@@ -17,6 +17,7 @@ type ChatService interface {
 	GetOneConversation(shopID uint64, token string, params GetMessageParamsRequest) (*GetDetailConversation, error)
 	SendMessage(shopID uint64, token string, request SendMessageRequest) (*GetSendMessageResponse, error)
 	UploadImage(shopID uint64, token string, filename string) (*UploadImageResponse, error)
+	UploadVideo(shopID uint64, token string, filename string) (any, error)
 	GetStickerPack() (*StickerPacksResponse, error)
 	GetListStickerByPID(stickerPackageID string) (*ListStickerByPID, error)
 	GetStickerByPIDAndSID(stickerPackageID, stickerID string) string
@@ -428,5 +429,12 @@ func (s *ChatServiceOp) UnreadConversation(shopID uint64, token string, request 
 		return nil, err
 	}
 	err = s.client.WithShop(uint64(shopID), token).Post(path, req, resp)
+	return resp, err
+}
+
+func (s *ChatServiceOp) UploadVideo(shopID uint64, token string, filename string) (any, error) {
+	path := "/sellerchat/upload_video"
+	resp := new(any)
+	err := s.client.WithShop(uint64(shopID), token).Upload(path, "file", filename, resp)
 	return resp, err
 }

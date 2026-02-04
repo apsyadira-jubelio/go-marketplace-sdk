@@ -21,6 +21,7 @@ var ApiNames = map[string]string{
 	"GetMultipleOrdersItems": "/orders/items/get",
 	"GetOrders":              "/orders/get",
 	"GetVideo":               "/media/video/get",
+	"InitCreateVideo":        "/media/video/block/create",
 }
 
 type Region string

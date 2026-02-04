@@ -11,6 +11,8 @@ type ChatService interface {
 	ReadMessageConversationID(conversationID string) (*ReadMessageConversationIDResp, error)
 	CreateConversation(body CreateConversationReq) (*CreateConversationResp, error)
 	UploadBuyerMessagesImages(filename string) (*UploadMessagesImagesResp, error)
+	FileInit(body FileInitRequest) (*FileInitResp, error)
+	UploadVideo(body UploadVideoRequest) (string, error)
 }
 
 type ChatServiceOp struct {
@@ -155,7 +157,6 @@ func (s *ChatServiceOp) ReadMessageConversationID(conversationID string) (*ReadM
 	path := fmt.Sprintf("/customer_service/%s/conversations/%s/messages/read", s.client.appConfig.Version, conversationID)
 	resp := new(ReadMessageConversationIDResp)
 	err := s.client.Post(path, nil, resp)
-
 	return resp, err
 }
 
@@ -195,4 +196,54 @@ func (s *ChatServiceOp) CreateConversation(body CreateConversationReq) (*CreateC
 	resp := new(CreateConversationResp)
 	err := s.client.Post(path, body, resp)
 	return resp, err
+}
+
+type FileInitRequest struct {
+	FileName        string `json:"file_name"`
+	FileType        string `json:"file_type"`
+	FileSize        int    `json:"file_size"`
+	TotalChunkCount int    `json:"total_chunk_count"`
+	TargetPath      string `json:"target_path"`
+}
+
+func (s *ChatServiceOp) FileInit(body FileInitRequest) (*FileInitResp, error) {
+	path := "/open/202512/file/init"
+	resp := new(FileInitResp)
+	countChunk := CalcChunkCount(int64(body.FileSize))
+	body.TotalChunkCount = countChunk
+	err := s.client.Post(path, body, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+type DataFileInit struct {
+	UploadToken string `json:"upload_token"`
+	UploadURL   string `json:"upload_url"`
+}
+
+type FileInitResp struct {
+	BaseResponse
+	Data *DataFileInit `json:"data"`
+}
+
+type UploadVideoRequest struct {
+	UploadToken string `json:"upload_token"`
+	UploadURL   string `json:"upload_url"`
+	ChunkNum    int    `json:"chunk_num"`
+	FileBytes   []byte `json:"file_bytes"`
+}
+
+func (s *ChatServiceOp) UploadVideo(body UploadVideoRequest) (string, error) {
+	resp, err := s.client.UploadFile(body.UploadURL, RequestUploadFile{
+		UploadToken: body.UploadToken,
+		ChunkNum:    body.ChunkNum,
+		FileBytes:   body.FileBytes,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return resp, nil
 }

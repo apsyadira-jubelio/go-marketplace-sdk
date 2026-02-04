@@ -1,9 +1,10 @@
 module github.com/apsyadira-jubelio/go-marketplace-sdk
 
-go 1.20
+go 1.25
 
 require (
 	github.com/caarlos0/env v3.5.0+incompatible
+	github.com/davecgh/go-spew v1.1.1
 	github.com/google/go-querystring v1.1.0
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/joho/godotenv v1.5.1
@@ -12,7 +13,6 @@ require (
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

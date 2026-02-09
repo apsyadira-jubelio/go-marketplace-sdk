@@ -17,12 +17,13 @@ type ChatService interface {
 	GetOneConversation(shopID uint64, token string, params GetMessageParamsRequest) (*GetDetailConversation, error)
 	SendMessage(shopID uint64, token string, request SendMessageRequest) (*GetSendMessageResponse, error)
 	UploadImage(shopID uint64, token string, filename string) (*UploadImageResponse, error)
-	UploadVideo(shopID uint64, token string, filename string) (any, error)
+	UploadVideo(shopID uint64, token string, filename string, fileBytes []byte) (*UploadVideoResponse, error)
 	GetStickerPack() (*StickerPacksResponse, error)
 	GetListStickerByPID(stickerPackageID string) (*ListStickerByPID, error)
 	GetStickerByPIDAndSID(stickerPackageID, stickerID string) string
 	ReadConversation(shopID uint64, token string, params ReadMessageRequest) (*ReadMessageResponse, error)
 	UnreadConversation(shopID uint64, token string, request UnreadMessageRequest) (*UnreadMessageResponse, error)
+	GetVideoByVidID(shopID uint64, token string, params GetVideoParamRequest) (*GetVideoByIDResponse, error)
 }
 
 type GetMessageParamsRequest struct {
@@ -179,7 +180,7 @@ type ContentSendMessage struct {
 	VoucherID   string `json:"voucher_id,omitempty"`
 	VoucherCode string `json:"voucher_code,omitempty"`
 	// video
-	Vid             int32  `json:"vid,omitempty"`
+	Vid             string `json:"vid,omitempty"`
 	VideoURL        string `json:"video_url,omitempty"`
 	DurationSeconds int32  `json:"duration_seconds,omitempty"`
 	// product
@@ -432,9 +433,47 @@ func (s *ChatServiceOp) UnreadConversation(shopID uint64, token string, request 
 	return resp, err
 }
 
-func (s *ChatServiceOp) UploadVideo(shopID uint64, token string, filename string) (any, error) {
+type UploadVideoResponse struct {
+	BaseResponse
+
+	Response DataUploadVideo `json:"response"`
+}
+
+type DataUploadVideo struct {
+	Vid string `json:"vid"`
+}
+
+func (s *ChatServiceOp) UploadVideo(shopID uint64, token string, filename string, fileBytes []byte) (*UploadVideoResponse, error) {
 	path := "/sellerchat/upload_video"
-	resp := new(any)
-	err := s.client.WithShop(uint64(shopID), token).Upload(path, "file", filename, resp)
+	resp := new(UploadVideoResponse)
+	err := s.client.WithShop(uint64(shopID), token).UploadVideo(path, filename, fileBytes, resp)
+	fmt.Println(resp)
 	return resp, err
+}
+
+type GetVideoParamRequest struct {
+	Vid string `url:"vid"`
+}
+
+func (s *ChatServiceOp) GetVideoByVidID(shopID uint64, token string, params GetVideoParamRequest) (*GetVideoByIDResponse, error) {
+	path := "/sellerchat/get_video_upload_result"
+	resp := new(GetVideoByIDResponse)
+	err := s.client.WithShop(shopID, token).Get(path, resp, params)
+	return resp, err
+}
+
+type GetVideoByIDResponse struct {
+	BaseResponse
+
+	Response DataGetVideo `json:"response"`
+}
+
+type DataGetVideo struct {
+	Video     string `json:"video"`
+	Thumbnail string `json:"thumbnail"`
+	Duration  int64  `json:"duration"`
+	Width     int64  `json:"width"`
+	Height    int64  `json:"height"`
+	Size      int64  `json:"size"`
+	Status    string `json:"status"`
 }

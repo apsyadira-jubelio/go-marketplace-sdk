@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 
 	"mime/multipart"
 	"net/http"
@@ -554,7 +553,55 @@ func (c *ShopeeClient) NewfileUploadRequest(relPath, paramName, filename string)
 	req.Header.Add("User-Agent", UserAgent)
 
 	c.makeSignature(req)
-	log.Println("print URL: ", req.URL)
+	return req, nil
+}
+
+func (c *ShopeeClient) NewfileUploadVideo(relPath, fileName string, fileBytes []byte) (*http.Request, error) {
+	if strings.HasPrefix(relPath, "/") {
+		// make sure it's a relative path
+		relPath = strings.TrimLeft(relPath, "/")
+	}
+
+	relPath = path.Join("api/v2", relPath)
+
+	rel, err := url.Parse(relPath)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make the full url based on the relative path
+	u := c.baseURL.ResolveReference(rel)
+	uri := u.String()
+
+	var buf bytes.Buffer
+	writer := multipart.NewWriter(&buf)
+	part, err := writer.CreateFormFile("file", fileName) // you may wish to use the real filename
+	if err != nil {
+		return nil, err
+	}
+	part.Write(fileBytes)
+	writer.Close()
+
+	req, err := http.NewRequest("POST", uri, &buf)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	c.makeSignature(req)
 
 	return req, nil
+}
+
+func (c *ShopeeClient) UploadVideo(relPath, filename string, fileBytes []byte, resource interface{}) error {
+	req, err := c.NewfileUploadVideo(relPath, filename, fileBytes)
+	if err != nil {
+		return err
+	}
+
+	if _, err := c.doGetHeaders(req, resource, false); err != nil {
+		return err
+	}
+
+	return nil
 }

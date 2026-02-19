@@ -1,76 +1,65 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/url"
 	"os"
-	"strconv"
 
-	"github.com/apsyadira-jubelio/go-marketplace-sdk/shopee"
+	"github.com/apsyadira-jubelio/go-marketplace-sdk/lazada"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )
 
 func main() {
 	godotenv.Load()
+
+	appKey := "117532"
+	appSecret := "G5VwB0wyhk3XQEsklCfmHSF2kP2luEqS"
 	// playground
-	partnerID, _ := strconv.Atoi(os.Getenv("SHOPEE_PARTNER_ID"))
-	shopID, _ := strconv.Atoi(os.Getenv("SHOP_ID"))
-	APIURL, _ := url.Parse("https://partner.shopeemobile.com")
+	client := lazada.NewClient(appKey, appSecret, lazada.Indonesia)
+	client.NewTokenClient("50000501928fIpdsqf7kcs6N0UHgEJjYGvTBfbCv15c4549cPcxtyqsRXpaTjqIj")
 
-	appConfig := shopee.AppConfig{
-		PartnerID:    partnerID,
-		PartnerKey:   os.Getenv("SHOPEE_PARTNER_KEY"),
-		RedirectURL:  "",
-		APIURL:       APIURL.String(),
-		EnableSocks5: true,
-		SockAddress:  os.Getenv("SOCKS_ADDRESS"),
-	}
-
-	spew.Dump(appConfig)
-	client := shopee.NewClient(appConfig, shopee.WithRetry(3), shopee.WithSocks5(os.Getenv("SOCKS_ADDRESS")))
 	initFileBytes, err := os.ReadFile("./test.mp4")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	uploadVideoResp, err := client.Chat.UploadVideo(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), "test.mp4", initFileBytes)
-	if err != nil {
-		log.Fatal(err)
-		// Consider handling errors differently if partial results are acceptable
-	}
-	fmt.Println("Upload Video Response")
-	spew.Dump(uploadVideoResp)
+	// resp, err := client.Media.InitCreateVideo(context.Background(), &lazada.InitCreateVideoParameter{
+	// 	FileName:  "test.mp4",
+	// 	FileBytes: 3145728,
+	// })
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	respGetVideo, err := client.Chat.GetVideoByVidID(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.GetVideoParamRequest{
-		Vid: uploadVideoResp.Response.Vid,
+	resp, err := client.Media.UploadVideoBlockRaw(context.Background(), "test.mp4", &lazada.UploadVideoBlockRequest{
+		UploadId:   "DD555F3DDB5844F8A7E8E0F5A7B2647A",
+		BlockNo:    0,
+		BlockCount: 1,
+		File:       initFileBytes,
 	})
 	if err != nil {
 		log.Fatal(err)
-		// Consider handling errors differently if partial results are acceptable
-	}
-	fmt.Println("Get Video Response")
-	spew.Dump(respGetVideo)
-
-	resp, err := client.Chat.SendMessage(uint64(shopID), os.Getenv("SHOPEE_TOKEN"), shopee.SendMessageRequest{
-		MessageType:  "video",
-		ToID:         json.Number(""),
-		BusinessType: 0,
-		Content: shopee.ContentSendMessage{
-			Vid:      uploadVideoResp.Response.Vid,
-			VideoURL: respGetVideo.Response.Video,
-		},
-	})
-	if err != nil {
-		log.Fatal(err)
-		// Consider handling errors differently if partial results are acceptable
 	}
 
-	fmt.Println("Send Message Response")
+	// cara kedua, chunk video jadi beberapa bagian sesuai sama: https://open.lazada.com/apps/doc/api?path=%2Fmedia%2Fvideo%2Fblock%2Fupload
+	// blocks := lazada.SplitFileToBlocks(initFileBytes, lazada.MaxBlockSizeBytes)
+	// for i, block := range blocks {
+	// 	resp, err := client.Media.UploadVideoBlockRaw(context.Background(), "test.mp4", &lazada.UploadVideoBlockRequest{
+	// 		UploadId:   "DD555F3DDB5844F8A7E8E0F5A7B2647A",
+	// 		BlockNo:    i,
+	// 		BlockCount: len(blocks),
+	// 		File:       block,
+	// 	})
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// 	writeJSONFile(resp, fmt.Sprintf("response-upload-block-%d", i))
+	// }
+
 	spew.Dump(resp)
-	writeJSONFile(resp, "send-message resp")
 }
 
 func writeJSONFile(response any, filename string) error {

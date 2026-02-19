@@ -72,6 +72,7 @@ type LazadaResponse struct {
 	Code      string          `json:"code"`
 	Data      json.RawMessage `json:"data"`
 	RequestID string          `json:"request_id"`
+	UploadID  string          `json:"upload_id,omitempty"`
 
 	Type         string `json:"type"`
 	Message      string `json:"message"`
@@ -167,7 +168,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 		if c.accessToken != "" {
 			reqParams.Set("access_token", c.accessToken)
 		}
-		sig := c.Signature(strings.TrimPrefix(u.Path, "/rest"), reqParams, strings.NewReader(reqParams.Encode()))
+		sig := c.Signature(strings.TrimPrefix(u.Path, "/rest"), reqParams)
 		reqParams.Set("sign", sig)
 
 		req, err = http.NewRequest(method, u.String(), strings.NewReader(reqParams.Encode()))
@@ -180,8 +181,6 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	}
 
 	req, err = http.NewRequest(method, u.String(), nil)
-	c.logRequest(req, false)
-
 	if err != nil {
 		return nil, err
 	}
@@ -202,21 +201,11 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*Laz
 		q.Set("sign_method", "sha256")
 		q.Set("timestamp", fmt.Sprintf("%d", time.Now().Unix()*1000))
 		q.Set("app_key", c.appKey)
-
 		if c.accessToken != "" {
 			q.Set("access_token", c.accessToken)
 		}
 
-		var body io.ReadCloser
-		var err error
-		if req.Body != nil {
-			body, err = req.GetBody()
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		sig := c.Signature(strings.TrimPrefix(req.URL.Path, "/rest"), q, body)
+		sig := c.Signature(strings.TrimPrefix(req.URL.Path, "/rest"), q)
 		q.Set("sign", sig)
 	}
 
@@ -287,7 +276,7 @@ func CheckResponse(r *http.Response) (*LazadaResponse, error) {
 }
 
 // Signature calculates the signature for the query parameter needed with every request
-func (c *Client) Signature(api string, val url.Values, body io.Reader) string {
+func (c *Client) Signature(api string, val url.Values) string {
 	var buf bytes.Buffer
 
 	buf.WriteString(api)

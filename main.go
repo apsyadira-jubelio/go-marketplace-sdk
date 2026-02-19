@@ -15,8 +15,8 @@ import (
 func main() {
 	godotenv.Load()
 
-	appKey := "117532"
-	appSecret := "G5VwB0wyhk3XQEsklCfmHSF2kP2luEqS"
+	appKey := ""
+	appSecret := ""
 	// playground
 	client := lazada.NewClient(appKey, appSecret, lazada.Indonesia)
 	client.NewTokenClient("50000501928fIpdsqf7kcs6N0UHgEJjYGvTBfbCv15c4549cPcxtyqsRXpaTjqIj")

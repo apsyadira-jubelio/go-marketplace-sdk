@@ -182,6 +182,9 @@ type ContentSendMessage struct {
 	// video
 	Vid             string `json:"vid,omitempty"`
 	VideoURL        string `json:"video_url,omitempty"`
+	ThumbURL        string `json:"thumb_url,omitempty"`
+	ThumbWidth      int32  `json:"thumb_width,omitempty"`
+	ThumbHeight     int32  `json:"thumb_height,omitempty"`
 	DurationSeconds int32  `json:"duration_seconds,omitempty"`
 	// product
 	ItemID json.Number `json:"item_id,omitempty"`
@@ -447,7 +450,6 @@ func (s *ChatServiceOp) UploadVideo(shopID uint64, token string, filename string
 	path := "/sellerchat/upload_video"
 	resp := new(UploadVideoResponse)
 	err := s.client.WithShop(uint64(shopID), token).UploadVideo(path, filename, fileBytes, resp)
-	fmt.Println(resp)
 	return resp, err
 }
 
@@ -471,9 +473,9 @@ type GetVideoByIDResponse struct {
 type DataGetVideo struct {
 	Video     string `json:"video"`
 	Thumbnail string `json:"thumbnail"`
-	Duration  int64  `json:"duration"`
-	Width     int64  `json:"width"`
-	Height    int64  `json:"height"`
-	Size      int64  `json:"size"`
+	Duration  int32  `json:"duration"` // microsecond
+	Width     int32  `json:"width"`
+	Height    int32  `json:"height"`
+	Size      int32  `json:"size"`
 	Status    string `json:"status"`
 }

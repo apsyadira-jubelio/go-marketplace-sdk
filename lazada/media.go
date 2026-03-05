@@ -424,8 +424,8 @@ type ThumbnailOptions struct {
 	Quality    int
 }
 
-// ExtractVideoThumbnailToBytes extracts a frame from a video without writing to disk.
-func (m *MediaService) ExtractVideoThumbnailToBytes(videoPath string, opts *ThumbnailOptions) ([]byte, error) {
+// ExtractVideoThumbnailToBytes extracts a frame from video bytes without writing to disk.
+func (m *MediaService) ExtractVideoThumbnailToBytes(videoData []byte, opts *ThumbnailOptions) ([]byte, error) {
 	timeOffset := "00:00:01"
 	quality := 2
 	if opts != nil {
@@ -437,10 +437,10 @@ func (m *MediaService) ExtractVideoThumbnailToBytes(videoPath string, opts *Thum
 		}
 	}
 
-	// Output to pipe (stdout) with image2pipe format
+	// Input from pipe (stdin) with pipe:0, output to pipe (stdout) with image2pipe format
 	cmd := exec.Command("ffmpeg",
 		"-ss", timeOffset,
-		"-i", videoPath,
+		"-i", "pipe:0", // read from stdin
 		"-frames:v", "1",
 		"-q:v", fmt.Sprintf("%d", quality),
 		"-vf", "scale=800:-1",
@@ -450,6 +450,7 @@ func (m *MediaService) ExtractVideoThumbnailToBytes(videoPath string, opts *Thum
 	)
 
 	var stdout, stderr bytes.Buffer
+	cmd.Stdin = bytes.NewReader(videoData)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 

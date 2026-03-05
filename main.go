@@ -27,25 +27,25 @@ func main() {
 
 	videoPath := "./test.mp4"
 
-	// Step 1: Extract thumbnail from video using ffmpeg (in-memory)
-	thumbBytes, err := client.Media.ExtractVideoThumbnailToBytes(videoPath, nil)
+	// Step 1: Read video file
+	fileData, err := os.ReadFile(videoPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Step 2: Extract thumbnail from video using ffmpeg (in-memory from bytes)
+	thumbBytes, err := client.Media.ExtractVideoThumbnailToBytes(fileData, nil)
 	if err != nil {
 		log.Fatal("Failed to extract thumbnail:", err)
 	}
 	log.Printf("Thumbnail extracted (bytes: %d)\n", len(thumbBytes))
 
-	// Step 2: Upload thumbnail to file service to get a public URL
+	// Step 3: Upload thumbnail to file service to get a public URL
 	coverUrl, err := uploadToFileService("test_thumb.jpg", thumbBytes, os.Getenv("STORAGE_TOKEN"))
 	if err != nil {
 		log.Fatal("Failed to upload thumbnail:", err)
 	}
 	log.Printf("Cover URL: %s\n", coverUrl)
-
-	// Step 3: Read video file
-	fileData, err := os.ReadFile(videoPath)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	// Step 4: Upload video (init + blocks + commit) in one call
 	resp, err := client.Media.UploadVideo(context.Background(), filepath.Base(videoPath), "Test Video", coverUrl, fileData)

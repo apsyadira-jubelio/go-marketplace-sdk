@@ -167,6 +167,12 @@ func (m *MediaService) UploadVideoBlockRaw(ctx context.Context, filename string,
 	val.Set("timestamp", ts)
 	val.Set("app_key", m.client.appKey)
 	val.Set("access_token", m.client.accessToken)
+
+	// Business params must be in val for both signature and URL query string
+	val.Set("uploadId", param.UploadId)
+	val.Set("blockNo", fmt.Sprintf("%d", param.BlockNo))
+	val.Set("blockCount", fmt.Sprintf("%d", param.BlockCount))
+
 	var buf bytes.Buffer
 	buf.WriteString(api)
 	keys := make([]string, 0, len(val))
@@ -192,9 +198,6 @@ func (m *MediaService) UploadVideoBlockRaw(ctx context.Context, filename string,
 	sign := strings.ToUpper(hex.EncodeToString(sig))
 	val.Set("sign", sign)
 
-	finalURL := fmt.Sprintf("%s?uploadId=%s&blockNo=%d&blockCount=%d&sign_method=sha256&sign=%s&timestamp=%s&app_key=%s&access_token=%s", u.String(), param.UploadId, param.BlockNo, param.BlockCount, sign, ts, m.client.appKey, m.client.accessToken)
-	log.Println("finalURL: ", finalURL)
-
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -212,7 +215,7 @@ func (m *MediaService) UploadVideoBlockRaw(ctx context.Context, filename string,
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", finalURL, body)
+	req, err := http.NewRequestWithContext(ctx, "POST", u.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -241,4 +244,176 @@ func (m *MediaService) UploadVideoBlockRaw(ctx context.Context, filename string,
 
 	return &lazResp, nil
 
+}
+
+// ---- CompleteCreateVideo (commit) ----
+
+type VideoPart struct {
+	PartNumber int    `json:"partNumber"`
+	ETag       string `json:"eTag"`
+}
+
+type CompleteCreateVideoRequest struct {
+	UploadID   string `json:"uploadId"`
+	Title      string `json:"title"`
+	CoverURL   string `json:"coverUrl"`
+	VideoUsage string `json:"videoUsage,omitempty"`
+}
+
+type CompleteCreateVideoResponse struct {
+	Code          string `json:"code"`
+	VideoID       string `json:"video_id"`
+	ResultMessage string `json:"result_message"`
+	Message       string `json:"message"`
+	Success       bool   `json:"success"`
+	ResultCode    string `json:"result_code"`
+	RequestID     string `json:"request_id"`
+}
+
+// CompleteCreateVideoRaw calls /media/video/block/commit to finalize an upload.
+func (m *MediaService) CompleteCreateVideoRaw(ctx context.Context, req *CompleteCreateVideoRequest, parts []VideoPart) (*CompleteCreateVideoResponse, error) {
+	ts := fmt.Sprintf("%d", time.Now().Unix()*1000)
+	baseURL := m.client.BaseURL.String() + "rest/media/video/block/commit"
+	u, err := url.Parse(baseURL)
+	if err != nil {
+		return nil, err
+	}
+
+	api := strings.TrimPrefix(u.Path, "/rest")
+
+	// URL-encode the parts JSON
+	partsJSON, err := json.Marshal(parts)
+	if err != nil {
+		return nil, fmt.Errorf("marshal parts: %w", err)
+	}
+
+	val := u.Query()
+	val.Set("sign_method", "sha256")
+	val.Set("timestamp", ts)
+	val.Set("app_key", m.client.appKey)
+	val.Set("access_token", m.client.accessToken)
+	val.Set("uploadId", req.UploadID)
+	val.Set("parts", string(partsJSON))
+	val.Set("title", req.Title)
+	val.Set("coverUrl", req.CoverURL)
+
+	if req.VideoUsage != "" {
+		val.Set("videoUsage", req.VideoUsage)
+	}
+
+	// Compute signature
+	var buf bytes.Buffer
+	buf.WriteString(api)
+	keys := make([]string, 0, len(val))
+	for k := range val {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		vs := val[k]
+		keyEscaped := url.QueryEscape(k)
+		for _, v := range vs {
+			buf.WriteString(keyEscaped)
+			buf.WriteString(v)
+		}
+	}
+
+	signer := hmac.New(sha256.New, []byte(m.client.secret))
+	signer.Write(buf.Bytes())
+	sig := signer.Sum(nil)
+	val.Set("sign", strings.ToUpper(hex.EncodeToString(sig)))
+
+	u.RawQuery = val.Encode()
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	client := http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.New("unable to read body")
+	}
+
+	log.Println("commit raw response:", string(data))
+
+	var lazResp CompleteCreateVideoResponse
+	if err := json.Unmarshal(data, &lazResp); err != nil {
+		return nil, errors.New("unable to decode response")
+	}
+
+	return &lazResp, nil
+}
+
+// ---- UploadVideo (full flow) ----
+
+// UploadVideoResponse contains the final result of the full upload flow.
+type UploadVideoResponse struct {
+	UploadID string
+	VideoID  string
+}
+
+// UploadVideo handles the full video upload flow in a single call:
+// 1. InitCreateVideo to get upload_id
+// 2. Split file into blocks and upload each
+// 3. CompleteCreateVideo to commit and get video_id
+//
+// title is the video title (required), coverUrl is the cover image URL (required).
+func (m *MediaService) UploadVideo(ctx context.Context, filename, title, coverUrl string, fileData []byte) (*UploadVideoResponse, error) {
+	// Step 1: Init
+	initResp, err := m.InitCreateVideo(ctx, &InitCreateVideoParameter{
+		FileName:  filename,
+		FileBytes: int64(len(fileData)),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("init create video: %w", err)
+	}
+
+	if initResp.UploadID == "" {
+		return nil, fmt.Errorf("init create video returned empty upload_id")
+	}
+
+	// Step 2: Split and upload blocks, collect eTags
+	blocks := SplitFileToBlocks(fileData, MaxBlockSizeBytes)
+	parts := make([]VideoPart, 0, len(blocks))
+
+	for i, block := range blocks {
+		blockResp, err := m.UploadVideoBlockRaw(ctx, filename, &UploadVideoBlockRequest{
+			UploadId:   initResp.UploadID,
+			BlockNo:    i,
+			BlockCount: len(blocks),
+			File:       block,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("upload block %d/%d: %w", i+1, len(blocks), err)
+		}
+
+		parts = append(parts, VideoPart{
+			PartNumber: i + 1,
+			ETag:       blockResp.ETag,
+		})
+	}
+
+	// Step 3: Commit
+	commitResp, err := m.CompleteCreateVideoRaw(ctx, &CompleteCreateVideoRequest{
+		UploadID: initResp.UploadID,
+		Title:    title,
+		CoverURL: coverUrl,
+	}, parts)
+
+	if err != nil {
+		return nil, fmt.Errorf("complete create video: %w", err)
+	}
+
+	return &UploadVideoResponse{
+		UploadID: initResp.UploadID,
+		VideoID:  commitResp.VideoID,
+	}, nil
 }

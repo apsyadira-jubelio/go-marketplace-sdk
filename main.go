@@ -1,85 +1,161 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"mime/multipart"
+	"net/http"
+	"net/textproto"
 	"os"
+	"os/exec"
+	"path/filepath"
 
 	"github.com/apsyadira-jubelio/go-marketplace-sdk/lazada"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )
 
 func main() {
 	godotenv.Load()
 
-	appKey := ""
-	appSecret := ""
-	// playground
+	appKey := os.Getenv("LAZADA_APP_KEY")
+	appSecret := os.Getenv("LAZADA_APP_SECRET")
 	client := lazada.NewClient(appKey, appSecret, lazada.Indonesia)
-	client.NewTokenClient("50000501928fIpdsqf7kcs6N0UHgEJjYGvTBfbCv15c4549cPcxtyqsRXpaTjqIj")
+	client.NewTokenClient(os.Getenv("LAZADA_TOKEN"))
 
-	initFileBytes, err := os.ReadFile("./test.mp4")
+	videoPath := "./test.mp4"
+
+	// Step 1: Extract thumbnail from video using ffmpeg
+	thumbnailPath, err := extractThumbnail(videoPath)
+	if err != nil {
+		log.Fatal("Failed to extract thumbnail:", err)
+	}
+	defer os.Remove(thumbnailPath)
+	log.Printf("Thumbnail extracted: %s\n", thumbnailPath)
+
+	// Step 2: Upload thumbnail to file service to get a public URL
+	coverUrl, err := uploadToFileService(thumbnailPath, os.Getenv("STORAGE_TOKEN"))
+	if err != nil {
+		log.Fatal("Failed to upload thumbnail:", err)
+	}
+	log.Printf("Cover URL: %s\n", coverUrl)
+
+	// Step 3: Read video file
+	fileData, err := os.ReadFile(videoPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// resp, err := client.Media.InitCreateVideo(context.Background(), &lazada.InitCreateVideoParameter{
-	// 	FileName:  "test.mp4",
-	// 	FileBytes: 3145728,
-	// })
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	resp, err := client.Media.UploadVideoBlockRaw(context.Background(), "test.mp4", &lazada.UploadVideoBlockRequest{
-		UploadId:   "DD555F3DDB5844F8A7E8E0F5A7B2647A",
-		BlockNo:    0,
-		BlockCount: 1,
-		File:       initFileBytes,
-	})
+	// Step 4: Upload video (init + blocks + commit) in one call
+	resp, err := client.Media.UploadVideo(context.Background(), filepath.Base(videoPath), "Test Video", coverUrl, fileData)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// cara kedua, chunk video jadi beberapa bagian sesuai sama: https://open.lazada.com/apps/doc/api?path=%2Fmedia%2Fvideo%2Fblock%2Fupload
-	// blocks := lazada.SplitFileToBlocks(initFileBytes, lazada.MaxBlockSizeBytes)
-	// for i, block := range blocks {
-	// 	resp, err := client.Media.UploadVideoBlockRaw(context.Background(), "test.mp4", &lazada.UploadVideoBlockRequest{
-	// 		UploadId:   "DD555F3DDB5844F8A7E8E0F5A7B2647A",
-	// 		BlockNo:    i,
-	// 		BlockCount: len(blocks),
-	// 		File:       block,
-	// 	})
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	writeJSONFile(resp, fmt.Sprintf("response-upload-block-%d", i))
-	// }
-
-	spew.Dump(resp)
+	log.Printf("Upload success! Upload ID: %s, Video ID: %s\n", resp.UploadID, resp.VideoID)
 }
 
-func writeJSONFile(response any, filename string) error {
-	// Create a new JSON file
-	file, err := os.Create(fmt.Sprintf("%s.json", filename))
-	if err != nil {
-		fmt.Println("Error creating file:", err)
-		return err
-	}
-	defer file.Close()
+// extractThumbnail uses ffmpeg to extract a frame from a video as a JPEG.
+func extractThumbnail(videoPath string) (string, error) {
+	outputPath := fmt.Sprintf("%s_thumb.jpg", videoPath)
 
-	// Encode response data to JSON and write to file
-	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "  ") // Indent the JSON for readability (optional)
-	err = encoder.Encode(response)
+	cmd := exec.Command("ffmpeg",
+		"-i", videoPath,
+		"-ss", "00:00:01",
+		"-vframes", "1",
+		"-q:v", "2",
+		"-y",
+		outputPath,
+	)
+
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Println("Error encoding JSON to file:", err)
-		return err
+		return "", fmt.Errorf("ffmpeg error: %w\noutput: %s", err, string(output))
 	}
 
-	fmt.Printf("Response written to %s.json", filename)
-	return nil
+	return outputPath, nil
+}
+
+// uploadToFileService uploads an image to the storage service and returns the public URL.
+func uploadToFileService(filePath, bearerToken string) (string, error) {
+	fileData, err := os.ReadFile(filePath)
+	if err != nil {
+		return "", fmt.Errorf("read file: %w", err)
+	}
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// Detect MIME type from extension
+	ext := filepath.Ext(filePath)
+	mimeType := "image/jpeg"
+	if ext == ".png" {
+		mimeType = "image/png"
+	}
+
+	partHeader := make(textproto.MIMEHeader)
+	partHeader.Set("Content-Disposition", fmt.Sprintf(`form-data; name="image"; filename="%s"`, filepath.Base(filePath)))
+	partHeader.Set("Content-Type", mimeType)
+
+	part, err := writer.CreatePart(partHeader)
+	if err != nil {
+		return "", fmt.Errorf("create form file: %w", err)
+	}
+	if _, err := part.Write(fileData); err != nil {
+		return "", fmt.Errorf("write file data: %w", err)
+	}
+	writer.Close()
+
+	req, err := http.NewRequest("POST", "https://chat-api.qm-staging-k8s.jubelio.io/storage/upload", body)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("Authorization", "Bearer "+bearerToken)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("read response: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("upload failed (status %d): %s", resp.StatusCode, string(respBody))
+	}
+
+	// Parse response to get the URL
+	var result struct {
+		URL  string      `json:"url"`
+		Data interface{} `json:"data"`
+	}
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return "", fmt.Errorf("parse response: %w\nraw: %s", err, string(respBody))
+	}
+
+	// Try top-level url first
+	imageURL := result.URL
+	if imageURL == "" {
+		// Try data field - could be string or nested struct
+		switch v := result.Data.(type) {
+		case string:
+			imageURL = v
+		case map[string]interface{}:
+			if u, ok := v["url"].(string); ok {
+				imageURL = u
+			}
+		}
+	}
+	if imageURL == "" {
+		return "", fmt.Errorf("no url in response: %s", string(respBody))
+	}
+
+	return imageURL, nil
 }

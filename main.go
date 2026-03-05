@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"net/textproto"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/apsyadira-jubelio/go-marketplace-sdk/lazada"
@@ -28,16 +27,15 @@ func main() {
 
 	videoPath := "./test.mp4"
 
-	// Step 1: Extract thumbnail from video using ffmpeg
-	thumbnailPath, err := extractThumbnail(videoPath)
+	// Step 1: Extract thumbnail from video using ffmpeg (in-memory)
+	thumbBytes, err := client.Media.ExtractVideoThumbnailToBytes(videoPath, nil)
 	if err != nil {
 		log.Fatal("Failed to extract thumbnail:", err)
 	}
-	defer os.Remove(thumbnailPath)
-	log.Printf("Thumbnail extracted: %s\n", thumbnailPath)
+	log.Printf("Thumbnail extracted (bytes: %d)\n", len(thumbBytes))
 
 	// Step 2: Upload thumbnail to file service to get a public URL
-	coverUrl, err := uploadToFileService(thumbnailPath, os.Getenv("STORAGE_TOKEN"))
+	coverUrl, err := uploadToFileService("test_thumb.jpg", thumbBytes, os.Getenv("STORAGE_TOKEN"))
 	if err != nil {
 		log.Fatal("Failed to upload thumbnail:", err)
 	}
@@ -58,46 +56,21 @@ func main() {
 	log.Printf("Upload success! Upload ID: %s, Video ID: %s\n", resp.UploadID, resp.VideoID)
 }
 
-// extractThumbnail uses ffmpeg to extract a frame from a video as a JPEG.
-func extractThumbnail(videoPath string) (string, error) {
-	outputPath := fmt.Sprintf("%s_thumb.jpg", videoPath)
-
-	cmd := exec.Command("ffmpeg",
-		"-i", videoPath,
-		"-ss", "00:00:01",
-		"-vframes", "1",
-		"-q:v", "2",
-		"-y",
-		outputPath,
-	)
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("ffmpeg error: %w\noutput: %s", err, string(output))
-	}
-
-	return outputPath, nil
-}
-
 // uploadToFileService uploads an image to the storage service and returns the public URL.
-func uploadToFileService(filePath, bearerToken string) (string, error) {
-	fileData, err := os.ReadFile(filePath)
-	if err != nil {
-		return "", fmt.Errorf("read file: %w", err)
-	}
+func uploadToFileService(filename string, fileData []byte, bearerToken string) (string, error) {
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
 	// Detect MIME type from extension
-	ext := filepath.Ext(filePath)
+	ext := filepath.Ext(filename)
 	mimeType := "image/jpeg"
 	if ext == ".png" {
 		mimeType = "image/png"
 	}
 
 	partHeader := make(textproto.MIMEHeader)
-	partHeader.Set("Content-Disposition", fmt.Sprintf(`form-data; name="image"; filename="%s"`, filepath.Base(filePath)))
+	partHeader.Set("Content-Disposition", fmt.Sprintf(`form-data; name="image"; filename="%s"`, filename))
 	partHeader.Set("Content-Type", mimeType)
 
 	part, err := writer.CreatePart(partHeader)

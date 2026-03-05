@@ -14,6 +14,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os/exec"
 	"sort"
 	"strings"
 	"time"
@@ -416,4 +417,48 @@ func (m *MediaService) UploadVideo(ctx context.Context, filename, title, coverUr
 		UploadID: initResp.UploadID,
 		VideoID:  commitResp.VideoID,
 	}, nil
+}
+
+type ThumbnailOptions struct {
+	TimeOffset string
+	Quality    int
+}
+
+// ExtractVideoThumbnailToBytes extracts a frame from a video without writing to disk.
+func (m *MediaService) ExtractVideoThumbnailToBytes(videoPath string, opts *ThumbnailOptions) ([]byte, error) {
+	timeOffset := "00:00:01"
+	quality := 2
+	if opts != nil {
+		if opts.TimeOffset != "" {
+			timeOffset = opts.TimeOffset
+		}
+		if opts.Quality > 0 {
+			quality = opts.Quality
+		}
+	}
+
+	// Output to pipe (stdout) with image2pipe format
+	cmd := exec.Command("ffmpeg",
+		"-ss", timeOffset,
+		"-i", videoPath,
+		"-frames:v", "1",
+		"-q:v", fmt.Sprintf("%d", quality),
+		"-vf", "scale=800:-1",
+		"-f", "image2pipe", // output as raw image stream
+		"-vcodec", "mjpeg", // encode as JPEG
+		"pipe:1", // send to stdout
+	)
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("ffmpeg error: %w\n%s", err, stderr.String())
+	}
+	if stdout.Len() == 0 {
+		return nil, errors.New("ffmpeg: output is empty")
+	}
+
+	return stdout.Bytes(), nil
 }

@@ -22,6 +22,8 @@ var ApiNames = map[string]string{
 	"GetOrders":              "/orders/get",
 	"GetVideo":               "/media/video/get",
 	"InitCreateVideo":        "/media/video/block/create",
+	"UploadVideoBlock":       "/media/video/block/upload",
+	"CompleteCreateVideo":    "/media/video/block/commit",
 }
 
 type Region string
@@ -64,3 +66,5 @@ const (
 	InviteBuyersFollowMessage = 10010
 	VideoMessage              = 6
 )
+
+const MaxBlockSizeBytes = 3 * 1024 * 1024 // 3MB

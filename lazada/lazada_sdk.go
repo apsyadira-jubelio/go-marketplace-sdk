@@ -73,6 +73,8 @@ type LazadaResponse struct {
 	Data      json.RawMessage `json:"data"`
 	RequestID string          `json:"request_id"`
 	UploadID  string          `json:"upload_id,omitempty"`
+	VideoURL  string          `json:"video_url,omitempty"`
+	State     string          `json:"state,omitempty"`
 
 	Type         string `json:"type"`
 	Message      string `json:"message"`

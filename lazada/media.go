@@ -32,7 +32,7 @@ type GetVideoResponse struct {
 	VideoURL      string `json:"video_url"`
 	Code          string `json:"code"`
 	ResultMessage string `json:"result_message"`
-	Success       string `json:"success"`
+	Success       bool   `json:"success"`
 	ResultCode    string `json:"result_code"`
 	State         string `json:"state"`
 	Title         string `json:"title"`
@@ -122,35 +122,6 @@ type UploadVideoBlockResponse struct {
 	ResultCode    string `json:"result_code"`
 	ETag          string `json:"e_tag"`
 	RequestID     string `json:"request_id"`
-}
-
-// The API is used to upload one block of origin video file.
-// The video file can split into multiple files. For example, a 8MB video file can be split into three blocks. 3MB, 3MB and 2MB.
-// These three blocks can be uploaded by calling UploadVideoBlock three times.
-func (m *MediaService) UploadVideoBlock(ctx context.Context, opts *UploadVideoBlockRequest) (res *UploadVideoBlockResponse, err error) {
-	u, err := addOptions(ApiNames["UploadVideoBlock"], opts)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := m.client.NewRequest("POST", u, nil)
-	if err != nil {
-		return nil, err
-	}
-	log.Println("check url:", req.URL)
-
-	var buf bytes.Buffer
-	_, err = m.client.Do(ctx, req, &buf)
-	if err != nil {
-		return nil, err
-	}
-
-	t := &UploadVideoBlockResponse{}
-	if err := json.NewDecoder(&buf).Decode(t); err != nil {
-		return nil, errors.New("cant unmarshal rep upload block")
-	}
-
-	return res, nil
 }
 
 func (m *MediaService) UploadVideoBlockRaw(ctx context.Context, filename string, param *UploadVideoBlockRequest) (*UploadVideoBlockResponse, error) {
@@ -248,7 +219,6 @@ func (m *MediaService) UploadVideoBlockRaw(ctx context.Context, filename string,
 }
 
 // ---- CompleteCreateVideo (commit) ----
-
 type VideoPart struct {
 	PartNumber int    `json:"partNumber"`
 	ETag       string `json:"eTag"`
@@ -362,22 +332,13 @@ type UploadVideoResponse struct {
 }
 
 // UploadVideo handles the full video upload flow in a single call:
-// 1. InitCreateVideo to get upload_id
-// 2. Split file into blocks and upload each
-// 3. CompleteCreateVideo to commit and get video_id
+// 1. Split file into blocks and upload each
+// 2. CompleteCreateVideo to commit and get video_id
 //
 // title is the video title (required), coverUrl is the cover image URL (required).
-func (m *MediaService) UploadVideo(ctx context.Context, filename, title, coverUrl string, fileData []byte) (*UploadVideoResponse, error) {
-	// Step 1: Init
-	initResp, err := m.InitCreateVideo(ctx, &InitCreateVideoParameter{
-		FileName:  filename,
-		FileBytes: int64(len(fileData)),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("init create video: %w", err)
-	}
-
-	if initResp.UploadID == "" {
+func (m *MediaService) UploadVideo(ctx context.Context, filename, title, coverUrl, uploadID string, fileData []byte) (*UploadVideoResponse, error) {
+	// Step 1: Validate uploadID
+	if uploadID == "" {
 		return nil, fmt.Errorf("init create video returned empty upload_id")
 	}
 
@@ -387,7 +348,7 @@ func (m *MediaService) UploadVideo(ctx context.Context, filename, title, coverUr
 
 	for i, block := range blocks {
 		blockResp, err := m.UploadVideoBlockRaw(ctx, filename, &UploadVideoBlockRequest{
-			UploadId:   initResp.UploadID,
+			UploadId:   uploadID,
 			BlockNo:    i,
 			BlockCount: len(blocks),
 			File:       block,
@@ -404,7 +365,7 @@ func (m *MediaService) UploadVideo(ctx context.Context, filename, title, coverUr
 
 	// Step 3: Commit
 	commitResp, err := m.CompleteCreateVideoRaw(ctx, &CompleteCreateVideoRequest{
-		UploadID: initResp.UploadID,
+		UploadID: uploadID,
 		Title:    title,
 		CoverURL: coverUrl,
 	}, parts)
@@ -414,7 +375,7 @@ func (m *MediaService) UploadVideo(ctx context.Context, filename, title, coverUr
 	}
 
 	return &UploadVideoResponse{
-		UploadID: initResp.UploadID,
+		UploadID: uploadID,
 		VideoID:  commitResp.VideoID,
 	}, nil
 }

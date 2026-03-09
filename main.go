@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 
 	"github.com/apsyadira-jubelio/go-marketplace-sdk/lazada"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )
 
@@ -47,13 +48,30 @@ func main() {
 	}
 	log.Printf("Cover URL: %s\n", coverUrl)
 
+	respInitVideo, err := client.Media.InitCreateVideo(context.Background(), &lazada.InitCreateVideoParameter{
+		FileName:  "test.mp4",
+		FileBytes: int64(len(fileData)),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Step 4: Upload video (init + blocks + commit) in one call
-	resp, err := client.Media.UploadVideo(context.Background(), filepath.Base(videoPath), "Test Video", coverUrl, fileData)
+	resp, err := client.Media.UploadVideo(context.Background(), filepath.Base(videoPath), "Test Video", coverUrl, respInitVideo.UploadID, fileData)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	log.Printf("Upload success! Upload ID: %s, Video ID: %s\n", resp.UploadID, resp.VideoID)
+
+	respGetVideo, err := client.Media.GetVideo(context.Background(), &lazada.GetVideoParameter{
+		VideoID: resp.VideoID,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	spew.Dump(respGetVideo)
 }
 
 // uploadToFileService uploads an image to the storage service and returns the public URL.

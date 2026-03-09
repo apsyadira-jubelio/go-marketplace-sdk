@@ -26,7 +26,7 @@ func main() {
 	client := lazada.NewClient(appKey, appSecret, lazada.Indonesia)
 	client.NewTokenClient(os.Getenv("LAZADA_TOKEN"))
 
-	videoPath := "./test.mp4"
+	videoPath := "./tes.mp4"
 
 	// Step 1: Read video file
 	fileData, err := os.ReadFile(videoPath)
@@ -72,6 +72,20 @@ func main() {
 	}
 
 	spew.Dump(respGetVideo)
+
+	respSendMessage, err := client.Chat.SendMessage(context.Background(), &lazada.SendMessageParams{
+		SessionID:  "",
+		TemplateID: 6,
+		VideoId:    resp.VideoID,
+		Width:      "800",
+		Height:     "800",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("send message")
+	spew.Dump(respSendMessage)
 }
 
 // uploadToFileService uploads an image to the storage service and returns the public URL.

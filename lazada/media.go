@@ -36,6 +36,8 @@ type GetVideoResponse struct {
 	ResultCode    string `json:"result_code"`
 	State         string `json:"state"`
 	Title         string `json:"title"`
+	ErrCode       string `json:"err_code,omitempty"`
+	ErrMessage    string `json:"err_message,omitempty"`
 	RequestID     string `json:"request_id"`
 }
 

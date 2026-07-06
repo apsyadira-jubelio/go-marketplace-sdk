@@ -30,7 +30,7 @@ type GetMessageParamsRequest struct {
 	Offset         string  `url:"offset,omitempty"`
 	PageSize       int     `url:"page_size,omitempty"`
 	ConversationID int64   `url:"conversation_id,omitempty"`
-	MessageIdList  []int64 `url:"message_id_list,ommitempty"`
+	MessageIdList  []int64 `url:"message_id_list,omitempty"`
 }
 
 type GetMessageResponse struct {

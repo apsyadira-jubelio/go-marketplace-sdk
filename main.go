@@ -59,6 +59,10 @@ func main() {
 		if err := getLazadaConversations(); err != nil {
 			log.Fatal(err)
 		}
+	case "lazada-concurrent":
+		if err := lazadaConcurrentExample(); err != nil {
+			log.Fatal(err)
+		}
 	default:
 		log.Fatalf("unknown command: %s (use: refresh | redis-cleanup | conversations | one-conversation | lazada-conversations)", cmd)
 	}
@@ -201,9 +205,9 @@ func getLazadaConversations() error {
 	}
 
 	lazadaClient := lazada.NewClient(appKey, secret, region)
-	lazadaClient.NewTokenClient(accessToken)
 
-	resp, err := lazadaClient.Chat.GetSessionList(ctx, &lazada.SessionListQuery{
+	// Token passed explicitly per-request (race-free for concurrent usage)
+	resp, err := lazadaClient.Chat.GetSessionList(ctx, accessToken, &lazada.SessionListQuery{
 		PageSize:  20,
 		StartTime: time.Now().AddDate(0, -1, 0).UnixNano() / int64(time.Millisecond),
 	})
@@ -214,6 +218,83 @@ func getLazadaConversations() error {
 	log.Printf("Lazada sessions: %d", len(resp.SessionListResponseData.SessionList))
 	spew.Dump(resp)
 
+	return nil
+}
+
+// lazadaConcurrentExample demonstrates race-free concurrent requests with per-tenant tokens.
+// Pass token explicitly to each service method instead of NewTokenClient().
+// NewTokenClient() mutates client state and causes race conditions when used concurrently.
+func lazadaConcurrentExample() error {
+	ctx := context.Background()
+
+	appKey := os.Getenv("LAZADA_APP_KEY")
+	secret := os.Getenv("LAZADA_SECRET_KEY")
+	region := lazada.Region(os.Getenv("LAZADA_REGION"))
+	if region == "" {
+		region = lazada.Indonesia
+	}
+
+	// Single client instance shared across goroutines (no token on client)
+	client := lazada.NewClient(appKey, secret, region)
+
+	// Simulate multiple tenants with different tokens
+	tenants := []struct {
+		tenantID string
+		token    string
+	}{
+		{"tenant-1", os.Getenv("LAZADA_ACCESS_TOKEN")},
+		{"tenant-2", os.Getenv("LAZADA_ACCESS_TOKEN_2")},
+		{"tenant-3", os.Getenv("LAZADA_ACCESS_TOKEN_3")},
+	}
+
+	results := make(chan struct {
+		tenantID string
+		count    int
+		err      error
+	}, len(tenants))
+
+	for _, tenant := range tenants {
+		go func(t struct {
+			tenantID string
+			token    string
+		}) {
+			// Pass tenant-specific token explicitly (race-free)
+			resp, err := client.Chat.GetSessionList(ctx, t.token, &lazada.SessionListQuery{
+				PageSize:  20,
+				StartTime: time.Now().AddDate(0, -1, 0).UnixNano() / int64(time.Millisecond),
+			})
+			if err != nil {
+				results <- struct {
+					tenantID string
+					count    int
+					err      error
+				}{t.tenantID, 0, err}
+				return
+			}
+			results <- struct {
+				tenantID string
+				count    int
+				err      error
+			}{t.tenantID, len(resp.SessionListResponseData.SessionList), nil}
+		}(tenant)
+	}
+
+	var errors []string
+	for i := 0; i < len(tenants); i++ {
+		result := <-results
+		if result.err != nil {
+			log.Printf("[%s] ERROR: %v", result.tenantID, result.err)
+			errors = append(errors, result.tenantID)
+		} else {
+			log.Printf("[%s] OK: %d sessions", result.tenantID, result.count)
+		}
+	}
+
+	if len(errors) > 0 {
+		return fmt.Errorf("failed tenants: %v", errors)
+	}
+
+	log.Println("All concurrent requests completed successfully")
 	return nil
 }
 

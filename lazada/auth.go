@@ -89,8 +89,8 @@ func (c *AuthService) GetAuthURL(state string, redirectURL string) string {
 
 // Exchange sends the received oauth code to the open platform and returns a token
 func (a *AuthService) GetAccessToken(ctx context.Context, code string) (*Token, error) {
-	req, err := a.client.NewRequest("GET",
-		fmt.Sprintf("%s?code=%s", ApiNames["AccessToken"], code), nil)
+	req, err := a.client.NewRequest("",
+		"GET", fmt.Sprintf("%s?code=%s", ApiNames["AccessToken"], code), nil)
 
 	if err != nil {
 		return nil, err
@@ -111,8 +111,8 @@ func (a *AuthService) GetAccessToken(ctx context.Context, code string) (*Token, 
 }
 
 func (a *AuthService) RefreshToken(ctx context.Context, refreshToken string) (*Token, error) {
-	req, err := a.client.NewRequest("GET",
-		fmt.Sprintf("%s?refresh_token=%s", ApiNames["RefreshToken"], refreshToken), nil)
+	req, err := a.client.NewRequest("",
+		"GET", fmt.Sprintf("%s?refresh_token=%s", ApiNames["RefreshToken"], refreshToken), nil)
 
 	if err != nil {
 		return nil, err

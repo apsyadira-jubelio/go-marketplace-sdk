@@ -58,7 +58,7 @@ func epochTimeOneMonthAgo() int64 {
 // GetSessionList retrieves a list of sessions based on the provided query options.
 // It returns a GetSessionListResponse containing the session list and any errors encountered.
 // If the opts parameter is nil, default options will be used with a page size of 20 and start time set to one month ago.
-func (m *ChatService) GetSessionList(ctx context.Context, opts *SessionListQuery) (*GetSessionListResponse, error) {
+func (m *ChatService) GetSessionList(ctx context.Context, token string, opts *SessionListQuery) (*GetSessionListResponse, error) {
 	if opts == nil {
 		opts = &SessionListQuery{
 			PageSize:  20,
@@ -71,7 +71,7 @@ func (m *ChatService) GetSessionList(ctx context.Context, opts *SessionListQuery
 		return nil, err
 	}
 
-	req, err := m.client.NewRequest("GET", u, nil)
+	req, err := m.client.NewRequest(token, "GET", u, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -100,8 +100,8 @@ type GetSessionDetailResponse struct {
 
 // GetSessionDetail returns a list of session detail in the region set
 // sessionID is required
-func (m *ChatService) GetSessionDetail(ctx context.Context, sessionID string) (*GetSessionDetailResponse, error) {
-	req, err := m.client.NewRequest("GET", fmt.Sprintf("%s?session_id=%s", ApiNames["GetSessionDetail"], sessionID), nil)
+func (m *ChatService) GetSessionDetail(ctx context.Context, token, sessionID string) (*GetSessionDetailResponse, error) {
+	req, err := m.client.NewRequest(token, "GET", fmt.Sprintf("%s?session_id=%s", ApiNames["GetSessionDetail"], sessionID), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -161,13 +161,13 @@ type MessageQueryParams struct {
 }
 
 // GetMessageList lets you retrieve all message list in a specific session
-func (m *ChatService) GetMessageList(ctx context.Context, opts *MessageQueryParams) (res *GetMessageResponse, err error) {
+func (m *ChatService) GetMessageList(ctx context.Context, token string, opts *MessageQueryParams) (res *GetMessageResponse, err error) {
 	u, err := addOptions(ApiNames["GetMessageList"], opts)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := m.client.NewRequest("GET", u, nil)
+	req, err := m.client.NewRequest(token, "GET", u, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -196,13 +196,13 @@ type MessageRecallParams struct {
 // MessageRecall is a method on the ChatService struct. It sends a request to the server to recall a specific message.
 // opts: A pointer to a MessageRecallParams struct containing the parameters for the MessageRecall function.
 // The function returns a pointer to a BaseResponse struct containing the server's response, and an error, if there is one.
-func (m *ChatService) MessageRecall(ctx context.Context, opts *MessageRecallParams) (res *BaseResponse, err error) {
+func (m *ChatService) MessageRecall(ctx context.Context, token string, opts *MessageRecallParams) (res *BaseResponse, err error) {
 	u, err := addOptions(ApiNames["MessageRecall"], opts)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := m.client.NewRequest("GET", u, nil)
+	req, err := m.client.NewRequest(token, "GET", u, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -232,8 +232,8 @@ type OpenSessionResposne struct {
 // OpenSession is a method on the ChatService struct. It sends a request to the server to open a chat session.
 // orderID: A string representing the unique identifier of an order.
 // The function returns a pointer to an OpenSessionResposne struct containing the server's response, and an error, if there is one.
-func (m *ChatService) OpenSession(ctx context.Context, orderID string) (res *OpenSessionResposne, err error) {
-	req, err := m.client.NewRequest("GET", fmt.Sprintf("%s?order_id=%s", ApiNames["OpenSession"], orderID), nil)
+func (m *ChatService) OpenSession(ctx context.Context, token, orderID string) (res *OpenSessionResposne, err error) {
+	req, err := m.client.NewRequest(token, "GET", fmt.Sprintf("%s?order_id=%s", ApiNames["OpenSession"], orderID), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -264,13 +264,13 @@ type ReadSessionParams struct {
 // ReadSession is a method on the ChatService struct. It sends a request to the server to read message of chat session.
 // opts: A pointer to a ReadSessionParams struct containing the parameters for the ReadSession function.
 // The function returns a pointer to an OpenSessionResposne struct containing the server's response, and an error, if there is one.
-func (m *ChatService) ReadSession(ctx context.Context, opts ReadSessionParams) (res *ReadSessionResponse, err error) {
+func (m *ChatService) ReadSession(ctx context.Context, token string, opts ReadSessionParams) (res *ReadSessionResponse, err error) {
 	u, err := addOptions(ApiNames["ReadSession"], opts)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := m.client.NewRequest("POST", u, nil)
+	req, err := m.client.NewRequest(token, "POST", u, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -316,13 +316,13 @@ type SendMessageParams struct {
 // ReadSendMessageSession is a method on the ChatService struct. It sends a request to the server to send message to specific sessionID.
 // opts: A pointer to a SendMessageParams struct containing the parameters for the SendMessage function.
 // The function returns a pointer to an OpenSessionResposne struct containing the server's response, and an error, if there is one.
-func (m *ChatService) SendMessage(ctx context.Context, opts *SendMessageParams) (res *SendMessageResponse, err error) {
+func (m *ChatService) SendMessage(ctx context.Context, token string, opts *SendMessageParams) (res *SendMessageResponse, err error) {
 	u, err := addOptions(ApiNames["SendMessage"], opts)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := m.client.NewRequest("POST", u, nil)
+	req, err := m.client.NewRequest(token, "POST", u, nil)
 	if err != nil {
 		return nil, err
 	}

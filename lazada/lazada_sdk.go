@@ -105,6 +105,7 @@ func NewClient(appKey, secret string, region Region) *Client {
 }
 
 // NewTokenClient takes a client access token and returns a copy of the client with the token set.
+// Deprecated: Pass token explicitly to service methods (race-free for concurrent usage).
 func (c *Client) NewTokenClient(token string) {
 	c.accessToken = token
 }
@@ -137,8 +138,9 @@ func addOptions(s string, opt interface{}) (string, error) {
 }
 
 // NewRequest returns an http request conforming to the open platform
-// Any body supplied will be encoded to XML
-func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
+// Any body supplied will be encoded to XML.
+// token is used per-request; if empty, falls back to the client token (deprecated).
+func (c *Client) NewRequest(token, method, urlStr string, body interface{}) (*http.Request, error) {
 	if !strings.HasPrefix(urlStr, "https") {
 		urlStr = fmt.Sprintf("rest%s", urlStr)
 	}
@@ -167,8 +169,11 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 		reqParams.Set("timestamp", fmt.Sprintf("%d", time.Now().Unix()*1000))
 		reqParams.Set("app_key", c.appKey)
 
-		if c.accessToken != "" {
-			reqParams.Set("access_token", c.accessToken)
+		if token == "" {
+			token = c.accessToken
+		}
+		if token != "" {
+			reqParams.Set("access_token", token)
 		}
 		sig := c.Signature(strings.TrimPrefix(u.Path, "/rest"), reqParams)
 		reqParams.Set("sign", sig)
@@ -179,6 +184,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 		}
 
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
+		req.Header.Set("X-Access-Token", token)
 		return req, nil
 	}
 
@@ -187,9 +193,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 		return nil, err
 	}
 
-	// if body != nil {
-	// }
-
+	req.Header.Set("X-Access-Token", token)
 	return req, nil
 }
 
@@ -197,14 +201,20 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 // It will marshal the data returned into the provided interface.
 func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*LazadaResponse, error) {
 	var q url.Values
+	// token carried on request header (set by NewRequest), fall back to client token
+	token := req.Header.Get("X-Access-Token")
+	req.Header.Del("X-Access-Token")
+	if token == "" {
+		token = c.accessToken
+	}
 
 	if req.Body == nil {
 		q = req.URL.Query()
 		q.Set("sign_method", "sha256")
 		q.Set("timestamp", fmt.Sprintf("%d", time.Now().Unix()*1000))
 		q.Set("app_key", c.appKey)
-		if c.accessToken != "" {
-			q.Set("access_token", c.accessToken)
+		if token != "" {
+			q.Set("access_token", token)
 		}
 
 		sig := c.Signature(strings.TrimPrefix(req.URL.Path, "/rest"), q)

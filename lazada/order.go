@@ -97,13 +97,13 @@ type OrderItems struct {
 
 // GetMultipleOrdersItems is a method on the OrderService struct. Use this API to get detailed information of the specified orders.
 // The function returns a pointer to an GetMultipleOrdersItemsResponse struct containing the server's response, and an error, if there is one.
-func (o *OrderService) GetMultipleOrdersItems(ctx context.Context, opts *GetMultipleOrdersItemsParam) (res *GetMultipleOrdersItemsResponse, err error) {
+func (o *OrderService) GetMultipleOrdersItems(ctx context.Context, token string, opts *GetMultipleOrdersItemsParam) (res *GetMultipleOrdersItemsResponse, err error) {
 	u, err := addOptions(ApiNames["GetMultipleOrdersItems"], opts)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := o.client.NewRequest("GET", u, nil)
+	req, err := o.client.NewRequest(token, "GET", u, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -207,13 +207,13 @@ type AddressShipping struct {
 
 // GetOrders is a method on the OrderService struct. Use this API to get list of orders.
 // The function returns a pointer to an GetOrdersResponse struct containing the server's response, and an error, if there is one.
-func (o *OrderService) GetOrders(ctx context.Context, opts *GetOrdersParam) (res *GetOrdersResponse, err error) {
+func (o *OrderService) GetOrders(ctx context.Context, token string, opts *GetOrdersParam) (res *GetOrdersResponse, err error) {
 	u, err := addOptions(ApiNames["GetOrders"], opts)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := o.client.NewRequest("GET", u, nil)
+	req, err := o.client.NewRequest(token, "GET", u, nil)
 	if err != nil {
 		return nil, err
 	}

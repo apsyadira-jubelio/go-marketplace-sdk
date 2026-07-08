@@ -83,7 +83,7 @@ type Attributes struct {
 // GetProducts is a method on the ProductService struct. Use this API to get detailed information of the specified products.
 // If the opts parameter is nil, default options will be used with a 50 limit products with no filter.
 // The function returns a pointer to an GetProductsResponse struct containing the server's response, and an error, if there is one.
-func (p *ProductService) GetProducts(ctx context.Context, opts *GetProductsParams) (res *GetProductsResponse, err error) {
+func (p *ProductService) GetProducts(ctx context.Context, token string, opts *GetProductsParams) (res *GetProductsResponse, err error) {
 	if opts == nil {
 		opts = &GetProductsParams{
 			Limit:  "25",
@@ -96,7 +96,7 @@ func (p *ProductService) GetProducts(ctx context.Context, opts *GetProductsParam
 		return nil, err
 	}
 
-	req, err := p.client.NewRequest("GET", u, nil)
+	req, err := p.client.NewRequest(token, "GET", u, nil)
 	if err != nil {
 		return nil, err
 	}

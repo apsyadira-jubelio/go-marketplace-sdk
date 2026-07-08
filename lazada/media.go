@@ -41,13 +41,13 @@ type GetVideoResponse struct {
 	RequestID     string `json:"request_id"`
 }
 
-func (m *MediaService) GetVideo(ctx context.Context, opts *GetVideoParameter) (res *GetVideoResponse, err error) {
+func (m *MediaService) GetVideo(ctx context.Context, token string, opts *GetVideoParameter) (res *GetVideoResponse, err error) {
 	u, err := addOptions(ApiNames["GetVideo"], opts)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := m.client.NewRequest("GET", u, nil)
+	req, err := m.client.NewRequest(token, "GET", u, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -82,13 +82,13 @@ type InitCreateVideoResponse struct {
 	RequestID     string `json:"request_id"`
 }
 
-func (m *MediaService) InitCreateVideo(ctx context.Context, opts *InitCreateVideoParameter) (res *InitCreateVideoResponse, err error) {
+func (m *MediaService) InitCreateVideo(ctx context.Context, token string, opts *InitCreateVideoParameter) (res *InitCreateVideoResponse, err error) {
 	u, err := addOptions(ApiNames["InitCreateVideo"], opts)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := m.client.NewRequest("POST", u, nil)
+	req, err := m.client.NewRequest(token, "POST", u, nil)
 	if err != nil {
 		return nil, err
 	}

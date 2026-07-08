@@ -11,7 +11,7 @@ import (
 
 func Test_SendMessage(t *testing.T) {
 	setup()
-	defer httpmock.DeactivateAndReset()
+	defer teardown()
 
 	// sessionID := "400096074640_1_400601424036_2_103"
 	// templateID := 1
@@ -19,15 +19,14 @@ func Test_SendMessage(t *testing.T) {
 	// ApiURL := fmt.Sprintf("%s?session_id=%s&template_id=%d&txt=%s", lazada.ApiNames["SendMessage"], sessionID, templateID, txt)
 
 	httpmock.RegisterResponder("POST",
-		lazada.ApiNames["SendMessage"],
+		`^.*\/im\/message\/send.*$`,
 		httpmock.NewBytesResponder(200, loadFixture("send_message_resp.json")),
 	)
 
 	var req lazada.SendMessageParams
 	loadMockData("send_message_req.json", &req)
 
-	client.NewTokenClient("50000600116cWYzTphDtTDshMBux1993574eoq9YzkugHtfWTiXeDQ7OzvDLRkFx")
-	res, err := client.Chat.SendMessage(context.TODO(), &lazada.SendMessageParams{
+	res, err := client.Chat.SendMessage(context.TODO(), "50000600116cWYzTphDtTDshMBux1993574eoq9YzkugHtfWTiXeDQ7OzvDLRkFx", &lazada.SendMessageParams{
 		SessionID:  req.SessionID,
 		TemplateID: req.TemplateID,
 		Txt:        req.Txt,

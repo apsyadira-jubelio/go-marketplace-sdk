@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/apsyadira-jubelio/go-marketplace-sdk/lazada"
 	"github.com/apsyadira-jubelio/go-marketplace-sdk/shopee"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/jackc/pgx/v5"
@@ -54,8 +55,12 @@ func main() {
 		if err := getOneConversation(); err != nil {
 			log.Fatal(err)
 		}
+	case "lazada-conversations":
+		if err := getLazadaConversations(); err != nil {
+			log.Fatal(err)
+		}
 	default:
-		log.Fatalf("unknown command: %s (use: refresh | redis-cleanup | conversations | one-conversation)", cmd)
+		log.Fatalf("unknown command: %s (use: refresh | redis-cleanup | conversations | one-conversation | lazada-conversations)", cmd)
 	}
 }
 
@@ -179,6 +184,34 @@ func getOneConversation() error {
 	}
 
 	log.Printf("Conversation detail:")
+	spew.Dump(resp)
+
+	return nil
+}
+
+func getLazadaConversations() error {
+	ctx := context.Background()
+
+	appKey := os.Getenv("LAZADA_APP_KEY")
+	secret := os.Getenv("LAZADA_SECRET_KEY")
+	accessToken := os.Getenv("LAZADA_ACCESS_TOKEN")
+	region := lazada.Region(os.Getenv("LAZADA_REGION"))
+	if region == "" {
+		region = lazada.Indonesia
+	}
+
+	lazadaClient := lazada.NewClient(appKey, secret, region)
+	lazadaClient.NewTokenClient(accessToken)
+
+	resp, err := lazadaClient.Chat.GetSessionList(ctx, &lazada.SessionListQuery{
+		PageSize:  20,
+		StartTime: time.Now().AddDate(0, -1, 0).UnixNano() / int64(time.Millisecond),
+	})
+	if err != nil {
+		return fmt.Errorf("get lazada session list: %w", err)
+	}
+
+	log.Printf("Lazada sessions: %d", len(resp.SessionListResponseData.SessionList))
 	spew.Dump(resp)
 
 	return nil

@@ -126,7 +126,7 @@ type UploadVideoBlockResponse struct {
 	RequestID     string `json:"request_id"`
 }
 
-func (m *MediaService) UploadVideoBlockRaw(ctx context.Context, filename string, param *UploadVideoBlockRequest) (*UploadVideoBlockResponse, error) {
+func (m *MediaService) UploadVideoBlockRaw(ctx context.Context, token, filename string, param *UploadVideoBlockRequest) (*UploadVideoBlockResponse, error) {
 	ts := fmt.Sprintf("%d", time.Now().Unix()*1000)
 	baseURL := "https://api.lazada.co.id/rest/media/video/block/upload"
 	u, err := url.Parse(baseURL)
@@ -140,7 +140,7 @@ func (m *MediaService) UploadVideoBlockRaw(ctx context.Context, filename string,
 	val.Set("sign_method", "sha256")
 	val.Set("timestamp", ts)
 	val.Set("app_key", m.client.appKey)
-	val.Set("access_token", m.client.accessToken)
+	val.Set("access_token", token)
 
 	// Business params must be in val for both signature and URL query string
 	val.Set("uploadId", param.UploadId)
@@ -244,7 +244,7 @@ type CompleteCreateVideoResponse struct {
 }
 
 // CompleteCreateVideoRaw calls /media/video/block/commit to finalize an upload.
-func (m *MediaService) CompleteCreateVideoRaw(ctx context.Context, req *CompleteCreateVideoRequest, parts []VideoPart) (*CompleteCreateVideoResponse, error) {
+func (m *MediaService) CompleteCreateVideoRaw(ctx context.Context, token string, req *CompleteCreateVideoRequest, parts []VideoPart) (*CompleteCreateVideoResponse, error) {
 	ts := fmt.Sprintf("%d", time.Now().Unix()*1000)
 	baseURL := m.client.BaseURL.String() + "rest/media/video/block/commit"
 	u, err := url.Parse(baseURL)
@@ -264,7 +264,7 @@ func (m *MediaService) CompleteCreateVideoRaw(ctx context.Context, req *Complete
 	val.Set("sign_method", "sha256")
 	val.Set("timestamp", ts)
 	val.Set("app_key", m.client.appKey)
-	val.Set("access_token", m.client.accessToken)
+	val.Set("access_token", token)
 	val.Set("uploadId", req.UploadID)
 	val.Set("parts", string(partsJSON))
 	val.Set("title", req.Title)
@@ -338,7 +338,7 @@ type UploadVideoResponse struct {
 // 2. CompleteCreateVideo to commit and get video_id
 //
 // title is the video title (required), coverUrl is the cover image URL (required).
-func (m *MediaService) UploadVideo(ctx context.Context, filename, title, coverUrl, uploadID string, fileData []byte) (*UploadVideoResponse, error) {
+func (m *MediaService) UploadVideo(ctx context.Context, token, filename, title, coverUrl, uploadID string, fileData []byte) (*UploadVideoResponse, error) {
 	// Step 1: Validate uploadID
 	if uploadID == "" {
 		return nil, fmt.Errorf("init create video returned empty upload_id")
@@ -349,7 +349,7 @@ func (m *MediaService) UploadVideo(ctx context.Context, filename, title, coverUr
 	parts := make([]VideoPart, 0, len(blocks))
 
 	for i, block := range blocks {
-		blockResp, err := m.UploadVideoBlockRaw(ctx, filename, &UploadVideoBlockRequest{
+		blockResp, err := m.UploadVideoBlockRaw(ctx, token, filename, &UploadVideoBlockRequest{
 			UploadId:   uploadID,
 			BlockNo:    i,
 			BlockCount: len(blocks),
@@ -366,7 +366,7 @@ func (m *MediaService) UploadVideo(ctx context.Context, filename, title, coverUr
 	}
 
 	// Step 3: Commit
-	commitResp, err := m.CompleteCreateVideoRaw(ctx, &CompleteCreateVideoRequest{
+	commitResp, err := m.CompleteCreateVideoRaw(ctx, token, &CompleteCreateVideoRequest{
 		UploadID: uploadID,
 		Title:    title,
 		CoverURL: coverUrl,
